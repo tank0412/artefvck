@@ -93,6 +93,11 @@
 #include "device_libs/platform_cm3628.h"
 #include "device_libs/platform_pca9574.h"
 #include "device_libs/platform_hx8528_me372cl.h"
+
+#ifdef CONFIG_INPUT_DRV2605_VIBRA
+#include "device_libs/platform_drv2605.h"
+#endif
+
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 #include "device_libs/platform_synaptics_dsx.h"
 #endif
@@ -250,6 +255,10 @@ struct devs_id __initconst device_ids[] = {
 	{"MNZX8000", SFI_DEV_TYPE_I2C, 0, &no_platform_data, NULL},
 	{"pca953x", SFI_DEV_TYPE_I2C, 0, &nxp_pca9574_platform_data, NULL},
 	{"hx8528", SFI_DEV_TYPE_I2C, 0, &hx8528_platform_data},
+
+#ifdef CONFIG_INPUT_DRV2605_VIBRA
+	{"drv2605", SFI_DEV_TYPE_I2C, 0, &drv2605_platform_data, NULL},
+#endif
 #if defined(CONFIG_A500CG_BATTERY_SMB347)
 	{"smb347_charger", SFI_DEV_TYPE_I2C, 0, &smb347_platform_data, NULL},
 #endif

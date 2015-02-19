@@ -77,6 +77,9 @@ obj-$(subst m,y,$(CONFIG_SND_SOC_WM5102)) += platform_wm5102.o
 obj-$(subst m,y,$(CONFIG_SENSORS_CM3628)) += platform_cm3628.o
 obj-$(subst m,y,$(CONFIG_GPIO_PCA953X)) += platform_pca9574.o
 obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_HIMAX_HX8528_ME372CL)) += platform_hx8528_me372cl.o
+
+obj-$(subst m,y,$(CONFIG_INPUT_DRV2605_VIBRA)) += platform_drv2605.o
+
 ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C
 obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C))                += platform_synaptics_dsx.o
 endif

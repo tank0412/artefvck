@@ -97,10 +97,13 @@
 #ifdef CONFIG_INPUT_DRV2605_VIBRA
 #include "device_libs/platform_drv2605.h"
 #endif
-
+#ifdef CONFIG_ST_LIS3DSH
+#include "device_libs/platform_lis3dsh.h"
+#endif
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 #include "device_libs/platform_synaptics_dsx.h"
 #endif
+
 
 /* SW devices */
 #include "device_libs/platform_panel.h"
@@ -280,7 +283,9 @@ struct devs_id __initconst device_ids[] = {
 	{"bq27520", SFI_DEV_TYPE_I2C, 0, &bq27520_platform_data, NULL},
 	{"bq27520f", SFI_DEV_TYPE_I2C, 0, &no_platform_data, NULL},
 #endif
-
+#ifdef CONFIG_ST_LIS3DSH
+	{"lis3dsh_acc", SFI_DEV_TYPE_I2C, 0, &lis3dsh_platform_data, NULL},
+#endif
 	/* MSIC subdevices */
 	{"msic_adc", SFI_DEV_TYPE_IPC, 1, &msic_adc_platform_data,
 						&ipc_device_handler},

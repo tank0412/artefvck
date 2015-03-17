@@ -29,6 +29,14 @@ config BQ24261_CHARGER
 	  the charger hardware abstraction only. Charging logic is abstracted
 	  in the charging framework.
 
+config BQ24232_CHARGER
+	tristate "BQ24232 charger driver"
+	select POWER_SUPPLY_CHARGER
+	help
+	  Say Y to include support for BQ24232 Charger driver. This driver
+	  reports device status via power supply class properties. Charging
+	  logic is implemented inside the driver.
+
 if A500CG
 source "drivers/external_drivers/drivers/power/ASUS_BATTERY/Kconfig"
 endif # A500CG

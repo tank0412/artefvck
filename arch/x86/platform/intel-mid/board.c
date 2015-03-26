@@ -100,9 +100,13 @@
 #ifdef CONFIG_ST_LIS3DSH
 #include "device_libs/platform_lis3dsh.h"
 #endif
+#ifdef CONFIG_ST_LSM6DS3_IIO
+#include "device_libs/platform_lsm6ds3.h"
+#endif
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 #include "device_libs/platform_synaptics_dsx.h"
 #endif
+
 
 
 /* SW devices */
@@ -285,6 +289,9 @@ struct devs_id __initconst device_ids[] = {
 #endif
 #ifdef CONFIG_ST_LIS3DSH
 	{"lis3dsh_acc", SFI_DEV_TYPE_I2C, 0, &lis3dsh_platform_data, NULL},
+#endif
+#ifdef CONFIG_ST_LSM6DS3_IIO
+	{"lsm6ds3", SFI_DEV_TYPE_I2C, 0, &lsm6ds3_platform_data, NULL},
 #endif
 	/* MSIC subdevices */
 	{"msic_adc", SFI_DEV_TYPE_IPC, 1, &msic_adc_platform_data,

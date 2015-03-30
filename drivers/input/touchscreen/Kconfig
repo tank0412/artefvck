@@ -966,4 +966,6 @@ config TOUCHSCREEN_SYNAPTICS_DSX_ACTIVE_PEN
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_active_pen.
 
+source "drivers/input/touchscreen/synaptics_dsx/Kconfig"
+
 endif

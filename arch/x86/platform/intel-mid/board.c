@@ -67,7 +67,9 @@
 #include "device_libs/platform_mrfl_thermal.h"
 #include "device_libs/platform_moor_thermal.h"
 #include "device_libs/platform_scu_log.h"
-
+#ifdef CONFIG_BQ24232_CHARGER
+#include "device_libs/platform_bq24232.h"
+#endif
 /*
  * I2C devices
  */
@@ -503,6 +505,9 @@ struct devs_id __initconst device_ids[] = {
 						&ipc_device_handler},
 	{"soc_thrm", SFI_DEV_TYPE_IPC, 1, &no_platform_data,
 						&soc_thrm_device_handler},
+#ifdef CONFIG_BQ24232_CHARGER
+	{"bq24232_charger", SFI_DEV_TYPE_IPC, 1, &bq24232_charger_platform_data, NULL},
+#endif
 	{"wm8958", SFI_DEV_TYPE_I2C, 0, &wm8994_platform_data, NULL},
 	{"wm5102", SFI_DEV_TYPE_I2C, 0, &wm5102_platform_data, NULL},
 	{"lm49453_codec", SFI_DEV_TYPE_I2C, 1, &no_platform_data, NULL},

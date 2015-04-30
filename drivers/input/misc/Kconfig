@@ -665,4 +665,11 @@ config ST_LIS3DSH
 	  If you say yes here get support for STMicroeletronics
 	  tilt sensors LIS3DSH.
 
+config ST_LIS3DSH_SELFTEST
+	bool "ST LIS3DSH self-test support"
+	depends on ST_LIS3DSH
+	default n
+	help
+	  If you say yes here to enable LIS3DSH self-test interface.
+
 endif

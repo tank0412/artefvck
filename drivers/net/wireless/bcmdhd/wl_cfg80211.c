@@ -6832,9 +6832,9 @@ fail:
 #endif /* LINUX_VERSION < VERSION(3,4,0) || WL_COMPAT_WIRELESS */
 
 #ifdef WL_SCHED_SCAN
-#define PNO_TIME		30
-#define PNO_REPEAT		4
-#define PNO_FREQ_EXPO_MAX	2
+#define PNO_TIME		19
+#define PNO_REPEAT		0
+#define PNO_FREQ_EXPO_MAX	4
 int wl_cfg80211_sched_scan_start(struct wiphy *wiphy,
                              struct net_device *dev,
                              struct cfg80211_sched_scan_request *request)

@@ -26,6 +26,10 @@
 #include <asm/intel_scu_pmic.h>
 #include <asm/intel_mid_gpadc.h>
 
+#ifdef CONFIG_BLX
+#include <linux/blx.h>
+#endif
+
 #define DISABLE_CHARGING_AT_LOW_TEMP false
 
 static unsigned int  battery_current;
@@ -636,6 +640,7 @@ static int asus_battery_update_status_no_mutex(int percentage)
 {
         int status;
         int temperature;
+
         //int flags; //for bq series
         struct battery_info_reply tmp_batt_info;
         u32 cable_status;
@@ -646,12 +651,11 @@ static int asus_battery_update_status_no_mutex(int percentage)
 
         if (cable_status == USB_ADAPTER || cable_status == USB_PC) {
                 status = POWER_SUPPLY_STATUS_CHARGING;
-#ifdef CONFIG_ASUS_FACTORY_MODE
-                /* ME371MG, ME302C eng mode : stop charging when battery percentage is over 60% */
-                if (percentage >= 60 && tmp_batt_info.eng_charging_limit) {
-                        BAT_DBG("in fac mode and capasity > 60%\n");
+#ifdef CONFIG_BLX
+                if (percentage >= get_charginglimit() && get_charginglimit() <= 98) {
                         smb347_charging_toggle(false);
-                        status = POWER_SUPPLY_STATUS_DISCHARGING;
+						//Fake the battery to be full now and exit here
+                        status = POWER_SUPPLY_STATUS_FULL;
                         goto final;
                 }
 #endif
@@ -776,36 +780,31 @@ static int asus_battery_update_status_no_mutex(int percentage)
                         smb347_AC_in_current();
                     }
                 }
-
-                if (percentage >= 0 && percentage <= 100) {
-                    //flags = bq27520_asus_battery_dev_read_flags(); /* no bq27520 */
-                    //BAT_DBG("battery flags= 0x%04X \n", flags);
-                    switch (percentage) {
-                       case 100:
-                          status = POWER_SUPPLY_STATUS_FULL;
-                          break;
-                       case 99:
+               if (percentage >= 0 && percentage <= 100) {               
+#ifdef CONFIG_BLX
+					if (percentage >= get_charginglimit())
+#else
+					if (percentage == 100)
+#endif
+					{
+							status = POWER_SUPPLY_STATUS_FULL;
+							goto final;
+					}
+					
+					if (percentage == 99) 
+					{
                           if (smb347_get_charging_status() == POWER_SUPPLY_STATUS_FULL) {
                              //check if Full-charged is detected
                              BAT_DBG("Full-charged is detected when in 99%% !\n");
                              status = POWER_SUPPLY_STATUS_FULL;
-                          } else {
-                             //smb347_charging_toggle(true);
+                             goto final;
                           }
-                          break;
-                       default:
-                          //smb347_charging_toggle(true);
-                          break;
-
-                   }
+					}
+				} 
+				else 
+					BAT_DBG_E("Incorrect percentage !!!!!\n");
                 } else {
-                    BAT_DBG_E("Incorrect percentage !!!!!\n");
-                }
-        } else {
-                //if (percentage == 100)
-                        //status = POWER_SUPPLY_STATUS_FULL;
-                //else
-                        status = POWER_SUPPLY_STATUS_DISCHARGING;
+                        status = POWER_SUPPLY_STATUS_NOT_CHARGING;
         }
 
 final:

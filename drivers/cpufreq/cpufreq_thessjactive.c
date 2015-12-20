@@ -36,8 +36,6 @@
 #include <asm/cputime.h>
 
 //for adding early suspend and late resume handlers
-//easy debug switch
-//#define GOVDEBUG
 #include <linux/earlysuspend.h>
 #include <linux/wait.h>
 
@@ -138,11 +136,13 @@ static struct cpufreq_thessjactive_tunables *common_tunables;
 static struct kobject *get_governor_parent_kobj(struct cpufreq_policy *policy);
 static struct attribute_group *get_sysfs_attr(void);
 
+extern whichgov ta_active;
+
 static void __cpuinit early_suspend_offline_cpus(struct early_suspend *h)
 {
 	#ifdef GOVDEBUG
 	printk("entered early_suspend handler in thessjactive");
-	#else
+	#endif
 	unsigned int cpu;
 	for_each_possible_cpu(cpu)
 	{
@@ -152,14 +152,13 @@ static void __cpuinit early_suspend_offline_cpus(struct early_suspend *h)
 		if (cpu_online(cpu) && num_online_cpus() > 2) //get 2 cores down, cores 3 and 4 
 			cpu_down(cpu);
 	}
-	#endif
 }
 
 static void __cpuinit late_resume_online_cpus(struct early_suspend *h)
 {
 	#ifdef GOVDEBUG
 	printk("entered late_resume handler in thessjactive");
-	#else
+	#endif
 	unsigned int cpu;
 	
 	for_each_possible_cpu(cpu)
@@ -167,7 +166,6 @@ static void __cpuinit late_resume_online_cpus(struct early_suspend *h)
 		if (!cpu_online(cpu) && num_online_cpus() < 4) //get all up 
 			cpu_up(cpu);
 	}
-	#endif
 }
 
 static struct early_suspend hotplug_auxcpus_desc __refdata = {
@@ -758,7 +756,7 @@ static void cpufreq_thessjactive_touchboost(void)
 	if (anyboost)
 		wake_up_process(speedchange_task);
 }
-
+//EXPORT_SYMBOL(cpufreq_thessjactive_touchboost);
 
 static int cpufreq_thessjactive_notifier(
 	struct notifier_block *nb, unsigned long val, void *data)
@@ -1429,13 +1427,12 @@ static int cpufreq_governor_thessjactive(struct cpufreq_policy *policy,
 
 	case CPUFREQ_GOV_START:
 		mutex_lock(&gov_lock);
-
 		freq_table = cpufreq_frequency_get_table(policy->cpu);
 		if (!tunables->hispeed_freq)
 			tunables->hispeed_freq = policy->max;
 
 		if (!tunables->touchboost_freq)
-			tunables->touchboost_freq = policy->max;
+			tunables->touchboost_freq = policy->max - 500000; //1.83GHz for 2.33GHz models, 1.33GHz for the 1.83GHz models
 		for_each_cpu(j, policy->cpus) {
 			pcpu = &per_cpu(cpuinfo, j);
 			pcpu->policy = policy;
@@ -1456,9 +1453,11 @@ static int cpufreq_governor_thessjactive(struct cpufreq_policy *policy,
 		}
 
 		mutex_unlock(&gov_lock);
+		ta_active = THESSJACTIVE;
 		break;
 
 	case CPUFREQ_GOV_STOP:
+		ta_active = NONE;
 		mutex_lock(&gov_lock);
 		for_each_cpu(j, policy->cpus) {
 			pcpu = &per_cpu(cpuinfo, j);
@@ -1519,6 +1518,25 @@ static int cpufreq_governor_thessjactive(struct cpufreq_policy *policy,
 	return 0;
 }
 
+void set_cpufreq_boost_ta(unsigned int enable)
+{
+		if(ta_active==NONE)
+			return;
+		struct cpufreq_thessjactive_cpuinfo *pcpu = &per_cpu(cpuinfo, raw_smp_processor_id());
+        struct cpufreq_thessjactive_tunables *tunables = pcpu->policy->governor_data;
+        
+         if (enable && (ktime_to_us(ktime_get()) > tunables->touchboostpulse_endtime)) {
+			tunables->touchboostpulse_endtime = ktime_to_us(ktime_get()) + tunables->touchboostpulse_duration_val;
+			trace_cpufreq_thessjactive_boost("pulse");
+            cpufreq_thessjactive_touchboost();
+			} 
+        else {
+                trace_cpufreq_thessjactive_unboost("off");
+			}
+	return;
+}
+EXPORT_SYMBOL_GPL(set_cpufreq_boost_ta);
+
 #ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_thessjactive
 static
 #endif
@@ -1546,9 +1564,7 @@ static int __init cpufreq_thessjactive_init(void)
 	unsigned int i, err;
 	struct cpufreq_thessjactive_cpuinfo *pcpu;
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
-
-	//init_waitqueue_head(&hp_state_wq);
-
+	
 	/* Initalize per-cpu timers */
 	for_each_possible_cpu(i) {
 		pcpu = &per_cpu(cpuinfo, i);

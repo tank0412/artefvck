@@ -15,7 +15,6 @@
  * Author: Mike Chan (mike@android.com)
  *
  */
-
 #include <linux/cpu.h>
 #include <linux/cpumask.h>
 #include <linux/cpufreq.h>
@@ -129,6 +128,8 @@ struct cpufreq_yankactive_tunables {
 static struct cpufreq_yankactive_tunables *common_tunables;
 static struct kobject *get_governor_parent_kobj(struct cpufreq_policy *policy);
 static struct attribute_group *get_sysfs_attr(void);
+
+extern whichgov ta_active;
 
 static inline cputime64_t get_cpu_idle_time_jiffy(unsigned int cpu,
 						  cputime64_t *wall)
@@ -712,7 +713,6 @@ static void cpufreq_yankactive_touchboost(void)
 	if (anyboost)
 		wake_up_process(speedchange_task);
 }
-
 
 static int cpufreq_yankactive_notifier(
 	struct notifier_block *nb, unsigned long val, void *data)
@@ -1387,7 +1387,7 @@ static int cpufreq_governor_yankactive(struct cpufreq_policy *policy,
 			tunables->hispeed_freq = policy->max;
 
 		if (!tunables->touchboost_freq)
-			tunables->touchboost_freq = policy->max;
+			tunables->touchboost_freq = policy->max - 500000; //1.83GHz for 2.33GHz models, 1.33GHz for the 1.83GHz models
 		for_each_cpu(j, policy->cpus) {
 			pcpu = &per_cpu(cpuinfo, j);
 			pcpu->policy = policy;
@@ -1408,9 +1408,11 @@ static int cpufreq_governor_yankactive(struct cpufreq_policy *policy,
 		}
 
 		mutex_unlock(&gov_lock);
+		ta_active = YANKACTIVE;
 		break;
 
 	case CPUFREQ_GOV_STOP:
+		ta_active = NONE;
 		mutex_lock(&gov_lock);
 		for_each_cpu(j, policy->cpus) {
 			pcpu = &per_cpu(cpuinfo, j);
@@ -1498,7 +1500,7 @@ static int __init cpufreq_yankactive_init(void)
 	unsigned int i;
 	struct cpufreq_yankactive_cpuinfo *pcpu;
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
-
+	//set_tboost = &set_tboost_ya;
 	/* Initalize per-cpu timers */
 	for_each_possible_cpu(i) {
 		pcpu = &per_cpu(cpuinfo, i);
@@ -1528,6 +1530,25 @@ static int __init cpufreq_yankactive_init(void)
 
 	return cpufreq_register_governor(&cpufreq_gov_yankactive);
 }
+
+void set_cpufreq_boost_ya(unsigned int enable)
+{
+		if(ta_active==NONE)
+			return;
+		struct cpufreq_yankactive_cpuinfo *pcpu = &per_cpu(cpuinfo, raw_smp_processor_id());
+        struct cpufreq_yankactive_tunables *tunables = pcpu->policy->governor_data;
+        
+         if (enable && (ktime_to_us(ktime_get()) > tunables->touchboostpulse_endtime)) {
+			tunables->touchboostpulse_endtime = ktime_to_us(ktime_get()) + tunables->touchboostpulse_duration_val;
+			trace_cpufreq_yankactive_boost("pulse");
+            cpufreq_yankactive_touchboost();
+			} 
+        else {
+                trace_cpufreq_yankactive_unboost("off");
+			}
+	return;
+}
+EXPORT_SYMBOL_GPL(set_cpufreq_boost_ya);
 
 #ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_yankactive
 fs_initcall(cpufreq_yankactive_init);

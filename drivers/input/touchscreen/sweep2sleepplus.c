@@ -307,7 +307,7 @@ static void s2s_input_event(struct input_handle *handle, unsigned int type,
 /* input filter function */
 static int input_dev_filter(struct input_dev *dev) 
 {
-	if (strstr(dev->name, "touch") || strstr(dev->name, SYNAPTICS_DSX_DRIVER_NAME)) 
+	if (strstr(dev->name, "touch") || strstr(dev->name, SYNAPTICS_NAME)) 
 		return 0;
 
 	return 1;

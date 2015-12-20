@@ -1,9 +1,10 @@
 /*
- * Sweep2Wake driver for OnePlus One Bacon with multiple gestures support
+ * Sweep2Wake driver for Zenfone
+ * Touchboost support included here
  * 
- * Author: andip71, 10.12.2014
+ * Author: andip71 & TheSSJ , Artefvck, 10.12.2014
  * 
- * Version 1.0.0
+ * Version 1.0.1
  *
  * Credits for initial implementation to Dennis Rassmann <showp1984@gmail.com>
  * 
@@ -29,16 +30,18 @@
 #include <linux/input.h>
 #include <linux/hrtimer.h>
 #include <linux/earlysuspend.h>
-#include "ftxxxx_ts.h"
+#include <linux/cpufreq.h>
+#include <linux/HWVersion.h>
 
+#define SYNAPTICS_NAME	"synaptics_dsx"
 
 /*****************************************/
 /* Module/driver data */
 /*****************************************/
 
-#define DRIVER_AUTHOR "andip71 (Lord Boeffla), TheSSJ"
-#define DRIVER_DESCRIPTION "Sweep2sleep for Zenfone 2"
-#define DRIVER_VERSION "1.0.1"
+#define DRIVER_AUTHOR "andip71 (Lord Boeffla), TheSSJ , Artefvck"
+#define DRIVER_DESCRIPTION "Sweep2sleep + Touchboost for Zenfone 2"
+#define DRIVER_VERSION "1.0.2"
 #define LOGTAG "s2s: "
 
 MODULE_AUTHOR(DRIVER_AUTHOR);
@@ -54,7 +57,11 @@ MODULE_LICENSE("GPLv2");
 /* Variables, structures and pointers */
 /*****************************************/
 
-int s2s = 0;
+int s2s = 1;
+int touchboost = 1;
+int is_ze550ml = 0;
+int y_boundary = 1920; //y value for ZE551ML
+int x_boundary = 1080; //x value for ZE551ML
 static int debug = 1;
 static int pwrkey_dur = 60;
 static bool scr_suspended;
@@ -67,11 +74,21 @@ static bool touch_y_called = false;
 #define MAXSIZE 2
 static int pressArray[MAXSIZE];
 
+//Size of the area (pixel) where the capacitive buttons are located
+#define BLACK_AREA 500
+
 static struct input_dev * sweep2sleep_pwrdev;
 static DEFINE_MUTEX(pwrkeyworklock);
 static struct workqueue_struct *s2s_input_wq;
 static struct work_struct s2s_input_work;
 
+//touchboost code here
+whichgov ta_active = NONE;
+
+//determination which device is running this kernel
+extern int Read_PROJ_ID(void);
+extern int Read_HW_ID(void);
+extern int Read_TP_ID(void);
 
 /*****************************************/
 // Internal functions
@@ -151,7 +168,7 @@ static void detect_sweep2sleep(int pressedKey)
 			if(pressedKey == KEY_HOME)
 			{
 				if(debug)
-					pr_info(LOGTAG"registered KEY_BACK");
+					pr_info(LOGTAG"registered KEY_MENU");
 				pressArray[1] = KEY_HOME;
 				//register and break out
 				return;
@@ -199,9 +216,24 @@ static void s2s_input_callback(struct work_struct *unused)
 static void s2s_input_event(struct input_handle *handle, unsigned int type,
 				unsigned int code, int value)
 {
-	if (!s2s)
+	if (!s2s && !touchboost)
 		return;
-		
+	
+	if (code == ABS_MT_TRACKING_ID && value == -1) 
+	{
+		//Touch up is done here, unboost if still boosted
+		if(touchboost)
+		{
+			if(ta_active==THESSJACTIVE)
+				set_cpufreq_boost_ta(0);
+			if(ta_active==YANKACTIVE)
+				set_cpufreq_boost_ya(0);
+		}
+		//as the finger left the contact with the screen, it doesn't count as sweep anymore, therefore reset
+		sweep2sleep_reset();
+		return;
+	}
+	
 	if (code == ABS_MT_POSITION_X)
 	{
 		touch_x = value;
@@ -218,17 +250,48 @@ static void s2s_input_event(struct input_handle *handle, unsigned int type,
 	{
 		touch_x_called = false;
 		touch_y_called = false;
-		if(touch_y >= 1910 && touch_y <= 2500)
+		
+		//we have x and y coordinates, we can start the touchboost now
+		if(touchboost)
+		{
+			if(ta_active==THESSJACTIVE)
+				set_cpufreq_boost_ta(1);
+			if(ta_active==YANKACTIVE)
+				set_cpufreq_boost_ya(1);
+		}
+		
+		//if sweep2sleep isn't activated, we don't need to evaluate anything. Reset and break out
+		if(!s2s)
+		{
+			touch_x = 0;
+			touch_y = 0;
+			return;
+		}
+			
+			
+		if((touch_y >= y_boundary) && (touch_y <= (y_boundary + BLACK_AREA)))
 		{
 			if(debug)
 				pr_info(LOGTAG"Registered touch, x = %d, y = %d\n", touch_x, touch_y);
-				
-			if(touch_x >= 200 && touch_x <= 300)
-				key_press = KEY_BACK;
-			if(touch_x >= 500 && touch_x <= 600)
-				key_press = KEY_HOME;
-			if(touch_x >= 850 && touch_x <= 975)
-				key_press = KEY_MENU;
+			
+			if(!is_ze550ml) //ZE551ML
+			{
+				if(touch_x >= 200 && touch_x <= 300)
+					key_press = KEY_BACK;
+				if(touch_x >= 500 && touch_x <= 600)
+					key_press = KEY_HOME;
+				if(touch_x >= 850 && touch_x <= 975)
+					key_press = KEY_MENU;
+			}
+			else //if is_ze550ml //ZE550ML, needs more testing
+			{
+				if(touch_x >= 130 && touch_x <= 200)
+					key_press = KEY_BACK;
+				if(touch_x >= 350 && touch_x <= 430)
+					key_press = KEY_HOME;
+				if(touch_x >= 560 && touch_x <= 650)
+					key_press = KEY_MENU;
+			}
 			
 			if(key_press != 0)
 			{
@@ -244,7 +307,7 @@ static void s2s_input_event(struct input_handle *handle, unsigned int type,
 /* input filter function */
 static int input_dev_filter(struct input_dev *dev) 
 {
-	if (strstr(dev->name, "touch") || strstr(dev->name, FTXXXX_NAME)) 
+	if (strstr(dev->name, "touch") || strstr(dev->name, SYNAPTICS_DSX_DRIVER_NAME)) 
 		return 0;
 
 	return 1;
@@ -317,11 +380,13 @@ static struct input_handler s2s_input_handler =
 static void early_suspend_screen_off(struct early_suspend *h)
 {
 	scr_suspended = true;
+	touchboost = 0;
 }
 
 static void late_resume_screen_on(struct early_suspend *h)
 {
 	scr_suspended = false;
+	touchboost = 1;
 }
 
 static struct early_suspend screen_detect = {
@@ -404,18 +469,45 @@ static ssize_t version_show(struct device *dev,
 static DEVICE_ATTR(sweep2sleep_version, (S_IWUSR|S_IRUGO),
 	version_show, NULL);
 
+static ssize_t touchboost_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", touchboost);
+}
+
+static ssize_t touchboost_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int ret = -EINVAL;
+	int val;
+
+	// read values from input buffer
+	ret = sscanf(buf, "%d", &val);
+
+	if (ret != 1)
+		return -EINVAL;
+		
+	// store if valid data
+	if (((val == 0) || (val == 1)))
+		touchboost = val;
+
+	return count;
+}
+
+static DEVICE_ATTR(touchboost, (S_IWUSR|S_IRUGO),
+	touchboost_show, touchboost_store);
 
 /*****************************************/
 // Driver init and exit functions
 /*****************************************/
 
-struct kobject *android_touch_kobj;
-EXPORT_SYMBOL_GPL(android_touch_kobj);
+struct kobject *sweep2sleep_touch_kobj;
+EXPORT_SYMBOL_GPL(sweep2sleep_touch_kobj);
 
 static int __init sweep2sleep_init(void)
 {
 	int rc = 0;
-
+	
 	sweep2sleep_pwrdev = input_allocate_device();
 	if (!sweep2sleep_pwrdev) 
 	{
@@ -453,36 +545,62 @@ static int __init sweep2sleep_init(void)
 	
 	register_early_suspend(&screen_detect);
 
-	android_touch_kobj = kobject_create_and_add("android_touch", NULL) ;
-	if (android_touch_kobj == NULL) 
+	sweep2sleep_touch_kobj = kobject_create_and_add("android_touch", NULL) ;
+	if (sweep2sleep_touch_kobj == NULL) 
 	{
-		pr_err(LOGTAG"%s: android_touch_kobj create_and_add failed\n", __func__);
+		pr_err(LOGTAG"%s: sweep2sleep_touch_kobj create_and_add failed\n", __func__);
 		goto err4;
 	}
 
-	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep.attr);
+	rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_sweep2sleep.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep\n", __func__);
 		goto err4;
 	}
 	
-	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep_debug.attr);
+	rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_sweep2sleep_debug.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep_debug\n", __func__);
 		goto err4;
 	}
 	
-	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep_version.attr);
+	rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_sweep2sleep_version.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep_version\n", __func__);
 		goto err4;
 	}
 	
+	/*rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_is_ze550ml.attr);
+	if (rc) 
+	{
+		pr_warn(LOGTAG"%s: sysfs_create_file failed for is_ze550ml\n", __func__);
+		goto err4;
+	}*/
+	
+	rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_touchboost.attr);
+	if (rc) 
+	{
+		pr_warn(LOGTAG"%s: sysfs_create_file failed for touchboost\n", __func__);
+		goto err5;
+	}
+	
+	if (Read_TP_ID() == 1)
+	{
+		if (Read_PROJ_ID() == PROJ_ID_A600CG)
+			is_ze550ml = 1;
+		else
+			is_ze550ml = 0;
+		
+		y_boundary = (!is_ze550ml ? 1920 : 1280);
+		x_boundary = (!is_ze550ml ? 1080 : 720);
+	}
+	
 	return 0;
-
+err5:
+	ta_active = NONE;
 err4:
 	unregister_early_suspend(&screen_detect);
 	input_unregister_handler(&s2s_input_handler);
@@ -503,7 +621,6 @@ static void __exit sweep2sleep_exit(void)
 	destroy_workqueue(s2s_input_wq);
 	input_unregister_device(sweep2sleep_pwrdev);
 	input_free_device(sweep2sleep_pwrdev);
-
 	return;
 }
 

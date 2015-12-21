@@ -16,6 +16,7 @@
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+#define __THESSJ__
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -32,6 +33,7 @@
 #include <linux/mutex.h>
 #include <linux/syscore_ops.h>
 #include <linux/pm_qos.h>
+#include <linux/string.h>
 
 #include <trace/events/power.h>
 
@@ -459,7 +461,6 @@ static ssize_t show_scaling_governor(struct cpufreq_policy *policy, char *buf)
 				policy->governor->name);
 	return -EINVAL;
 }
-
 
 /**
  * store_scaling_governor - store policy for the specified CPU

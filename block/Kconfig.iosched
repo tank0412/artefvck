@@ -73,6 +73,12 @@ config IOSCHED_FIFO
 	https://github.com/AndroidDeveloperAlliance/ZenKernel_TUNA/blob/master/block/fifo-
 	iosched.c
 
+config IOSCHED_TRIPNDROID
+	tristate "Tripndroid"
+	default y
+	---help---
+	  The Trip N Droid scheduler
+
 config IOSCHED_VR
 	tristate "V(R) I/O scheduler"
 	default y
@@ -126,6 +132,9 @@ choice
 	  Select the I/O scheduler which will be used by default for all
 	  block devices.
 
+	config DEFAULT_TRIPNDROID
+		bool "TRIPNDROID" if IOSCHED_TRIPNDROID=y
+
 	config DEFAULT_DEADLINE
 		bool "Deadline" if IOSCHED_DEADLINE=y
 
@@ -157,6 +166,7 @@ config DEFAULT_IOSCHED
 	default "bfq" if DEFAULT_BFQ
 	default "noop" if DEFAULT_NOOP
 	default "sioplus" if DEFAULT_SIOPLUS
+	default "tripndroid" if DEFAULT_TRIPNDROID
 endmenu
 
 endif

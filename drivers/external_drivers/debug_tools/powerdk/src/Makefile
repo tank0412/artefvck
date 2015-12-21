@@ -97,7 +97,7 @@ DRIVER_BASE=apwr
 DRIVER_MAJOR=3
 DRIVER_MINOR=1
 # basic name of driver
-DRIVER_NAME=${DRIVER_BASE}${DRIVER_MAJOR}_${DRIVER_MINOR}
+DRIVER_NAME := ${DRIVER_BASE}${DRIVER_MAJOR}_${DRIVER_MINOR}
 
 # location to install driver
 INSTALL = .
@@ -124,7 +124,7 @@ EXTRA_CFLAGS += -DDO_WAKELOCK_SAMPLE=$(WAKELOCK_SAMPLE)
 EXTRA_CFLAGS += -DTRACE_CPU_HOTPLUG=$(TRACE_CPU_HOTPLUG)
 EXTRA_CFLAGS += -DDO_ANDROID=$(ANDROID_BUILD)
 
-obj-m := $(DRIVER_NAME).o
+
 $(DRIVER_NAME)-objs :=	src/apwr_driver.o \
 			src/pw_output_buffer.o
 #src/pw_output_buffer.o
@@ -148,3 +148,5 @@ default: kernel_check
 
 clean: kernel_check
 	make -C $(KERNEL_SRC_DIR) M=$(PWD) clean
+
+obj-$(CONFIG_APWR) += $(DRIVER_NAME).o

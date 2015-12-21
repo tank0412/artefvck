@@ -32,7 +32,7 @@
 
 # base name of SEP driver
 DRIVER_NAME = sep3_15
-
+obj-m += $(DRIVER_NAME).o
 # location to install driver
 INSTALL = .
 

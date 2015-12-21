@@ -70,8 +70,8 @@ EXTRA_CFLAGS += -DVTSS_ARCH_64
 $(DRIVER_NAME)-objs += sys64.o
 endif
 endif
-
-EXTRA_CFLAGS  += -Wno-unused -Werror
+EXTRA_CFLAGS  += -Wno-unused
+#EXTRA_CFLAGS  += -Wno-unused -Werror
 VTSS_FEATURES := $(subst :, ,$(VTSS))
 ifneq ($(filter trace, $(VTSS_FEATURES)),)
 EXTRA_CFLAGS  += -DVTSS_DEBUG_TRACE
@@ -208,4 +208,8 @@ install:
 	-@cp -f $(DRIVER_NAME).ko $(INSTALL)/$(DRIVER_FILENAME)
 	@echo "Installed $(DRIVER_NAME) driver to $(INSTALL)/$(DRIVER_FILENAME)"
 
+
+
 endif
+
+obj-$(CONFIG_VTSSP) += $(DRIVER_NAME).o

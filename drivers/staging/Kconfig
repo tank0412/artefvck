@@ -72,8 +72,6 @@ source "drivers/staging/sep/Kconfig"
 
 source "drivers/staging/sep54/Kconfig"
 
-source "drivers/staging/snappy/Kconfig"
-
 source "drivers/staging/iio/Kconfig"
 
 source "drivers/staging/zsmalloc/Kconfig"

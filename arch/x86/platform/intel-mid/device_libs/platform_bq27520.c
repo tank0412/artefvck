@@ -9,7 +9,6 @@
 #include <linux/power_supply.h>
 #include <linux/power/bq27520_battery.h>
 #include <linux/power/intel_mdf_battery.h>
-#include <linux/power/smb347-a500cg-charger.h>
 #include <asm/intel-mid.h>
 #include <asm/delay.h>
 #include <asm/intel_scu_ipc.h>

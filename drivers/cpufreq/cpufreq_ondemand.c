@@ -4,8 +4,7 @@
  *  Copyright (C)  2001 Russell King
  *            (C)  2003 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>.
  *                      Jun Nakajima <jun.nakajima@intel.com>
- *	Hotplug implementation by TheSSJ
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -26,7 +25,7 @@
 #include <linux/tick.h>
 #include <linux/types.h>
 #include <linux/cpu.h>
-#include <linux/earlysuspend.h>
+
 #include "cpufreq_governor.h"
 
 /* On-demand governor macros */
@@ -47,42 +46,6 @@ static struct od_ops od_ops;
 #ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND
 static struct cpufreq_governor cpufreq_gov_ondemand;
 #endif
-
-static void __cpuinit early_suspend_offline_cpus(struct early_suspend *h)
-{
-	#ifdef GOVDEBUG
-	printk("entered early_suspend handler in hotdemand");
-	#endif
-	unsigned int cpu;
-	for_each_possible_cpu(cpu)
-	{
-		if (cpu<2) //begin offline work at core 3
-			continue;
-		
-		if (cpu_online(cpu) && num_online_cpus() > 2) //get 2 cores down, cores 3 and 4 
-			cpu_down(cpu);
-	}
-}
-
-static void __cpuinit late_resume_online_cpus(struct early_suspend *h)
-{
-	#ifdef GOVDEBUG
-	printk("entered late_resume handler in hotdemand");
-	#endif
-	unsigned int cpu;
-	
-	for_each_possible_cpu(cpu)
-	{
-		if (!cpu_online(cpu) && num_online_cpus() < 4) //get all up 
-			cpu_up(cpu);
-	}
-}
-
-static struct early_suspend hotplug_auxcpus_desc __refdata = {
-	.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN,
-	.suspend = early_suspend_offline_cpus,
-	.resume = late_resume_online_cpus,
-};
 
 static unsigned int default_powersave_bias;
 
@@ -587,14 +550,12 @@ static int od_init(struct dbs_data *dbs_data)
 
 	dbs_data->tuners = tuners;
 	mutex_init(&dbs_data->mutex);
-	register_early_suspend(&hotplug_auxcpus_desc);
 	return 0;
 }
 
 static void od_exit(struct dbs_data *dbs_data)
 {
 	kfree(dbs_data->tuners);
-	unregister_early_suspend(&hotplug_auxcpus_desc);
 }
 
 define_get_cpu_dbs_routines(od_cpu_dbs_info);

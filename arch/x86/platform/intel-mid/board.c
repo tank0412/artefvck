@@ -250,9 +250,6 @@ struct devs_id __initconst device_ids[] = {
 	{"MNZX8000", SFI_DEV_TYPE_I2C, 0, &no_platform_data, NULL},
 	{"pca953x", SFI_DEV_TYPE_I2C, 0, &nxp_pca9574_platform_data, NULL},
 	{"hx8528", SFI_DEV_TYPE_I2C, 0, &hx8528_platform_data},
-#if defined(CONFIG_A500CG_BATTERY_SMB347)
-	{"smb347_charger", SFI_DEV_TYPE_I2C, 0, &smb347_platform_data, NULL},
-#endif
 
 #ifdef CONFIG_ME372CG_BATTERY_SMB345
 #if defined(CONFIG_PF450CL)

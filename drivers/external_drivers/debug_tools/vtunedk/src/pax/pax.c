@@ -38,13 +38,13 @@
 #include <linux/version.h>
 #include <linux/slab.h>
 
-#include "../lwpmudrv_defines.h"
-#include "../lwpmudrv_types.h"
-#include "../lwpmudrv.h"
-#include "../lwpmudrv_ioctl.h"
+#include "lwpmudrv_defines.h"
+#include "lwpmudrv_types.h"
+#include "lwpmudrv.h"
+#include "lwpmudrv_ioctl.h"
 
-#include "../control.h"
-#include "../pax_shared.h"
+#include "control.h"
+#include "pax_shared.h"
 
 MODULE_AUTHOR("Copyright (C) 2009-2014 Intel Corporation");
 MODULE_VERSION(PAX_NAME"_"PAX_VERSION_STR);

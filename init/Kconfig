@@ -28,37 +28,6 @@ config BUILDTIME_EXTABLE_SORT
 
 menu "General setup"
 
-config EXPERIMENTAL
-	bool "Prompt for development and/or incomplete code/drivers"
-	---help---
-	  Some of the various things that Linux supports (such as network
-	  drivers, file systems, network protocols, etc.) can be in a state
-	  of development where the functionality, stability, or the level of
-	  testing is not yet high enough for general use. This is usually
-	  known as the "alpha-test" phase among developers. If a feature is
-	  currently in alpha-test, then the developers usually discourage
-	  uninformed widespread use of this feature by the general public to
-	  avoid "Why doesn't this work?" type mail messages. However, active
-	  testing and use of these systems is welcomed. Just be aware that it
-	  may not meet the normal level of reliability or it may fail to work
-	  in some special cases. Detailed bug reports from people familiar
-	  with the kernel internals are usually welcomed by the developers
-	  (before submitting bug reports, please read the documents
-	  <file:README>, <file:MAINTAINERS>, <file:REPORTING-BUGS>,
-	  <file:Documentation/BUG-HUNTING>, and
-	  <file:Documentation/oops-tracing.txt> in the kernel source).
-
-	  This option will also make obsoleted drivers available. These are
-	  drivers that have been replaced by something else, and/or are
-	  scheduled to be removed in a future kernel release.
-
-	  Unless you intend to help test and develop a feature or driver that
-	  falls into this category, or you have a situation that requires
-	  using these features, you should probably say N here, which will
-	  cause the configurator to present you with fewer choices. If
-	  you say Y here, you will be offered the choice of using features or
-	  drivers that are currently considered to be in the alpha-test phase.
-
 config BROKEN
 	bool
 
@@ -117,9 +86,6 @@ config LOCALVERSION_AUTO
 config HAVE_KERNEL_GZIP
 	bool
 
-config HAVE_KERNEL_MINIGZIP
-	bool
-
 config HAVE_KERNEL_BZIP2
 	bool
 
@@ -132,13 +98,10 @@ config HAVE_KERNEL_XZ
 config HAVE_KERNEL_LZO
 	bool
 
-config HAVE_KERNEL_LZ4
-	bool
-
 choice
 	prompt "Kernel compression mode"
 	default KERNEL_GZIP
-	depends on HAVE_KERNEL_GZIP || HAVE_KERNEL_MINIGZIP || HAVE_KERNEL_BZIP2 || HAVE_KERNEL_LZMA || HAVE_KERNEL_XZ || HAVE_KERNEL_LZO || HAVE_KERNEL_LZ4
+	depends on HAVE_KERNEL_GZIP || HAVE_KERNEL_BZIP2 || HAVE_KERNEL_LZMA || HAVE_KERNEL_XZ || HAVE_KERNEL_LZO
 	help
 	  The linux kernel is a kind of self-extracting executable.
 	  Several compression algorithms are available, which differ
@@ -163,19 +126,6 @@ config KERNEL_GZIP
 	help
 	  The old and tried gzip compression. It provides a good balance
 	  between compression ratio and decompression speed.
-
-config KERNEL_MINIGZIP
-	bool "Minigzip"
-	depends on HAVE_KERNEL_MINIGZIP
-	help
-	  Use minigzip to compress the bzImage. This is very similar to gzip
-	  but uses the zlib library to compress, rather than the very old version
-	  of zlib inside the gzip codebase. This is used for Android kernels
-	  so that the same version of the deflate() algorithm is used when
-	  building the kernel and constructing diffs with OTA applypatch, which
-	  uncompresses sections of files that it detects are gzipped before computing
-	  the diffs. If the versions of deflate() are out of alignment the binary
-	  diffs tend to be very large.
 
 config KERNEL_BZIP2
 	bool "Bzip2"
@@ -217,18 +167,6 @@ config KERNEL_LZO
 	  Its compression ratio is the poorest among the choices. The kernel
 	  size is about 10% bigger than gzip; however its speed
 	  (both compression and decompression) is the fastest.
-
-config KERNEL_LZ4
-	bool "LZ4"
-	depends on HAVE_KERNEL_LZ4
-	help
-	  LZ4 is an LZ77-type compressor with a fixed, byte-oriented encoding.
-	  A preliminary version of LZ4 de/compression tool is available at
-	  <https://code.google.com/p/lz4/>.
-
-	  Its compression ratio is worse than LZO. The size of the kernel
-	  is about 8% bigger than LZO. But the decompression speed is
-	  faster than LZO.
 
 endchoice
 

@@ -16,7 +16,6 @@
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-#define __THESSJ__
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -33,7 +32,6 @@
 #include <linux/mutex.h>
 #include <linux/syscore_ops.h>
 #include <linux/pm_qos.h>
-#include <linux/string.h>
 
 #include <trace/events/power.h>
 
@@ -136,7 +134,6 @@ bool have_governor_per_policy(void)
 {
 	return cpufreq_driver->have_governor_per_policy;
 }
-EXPORT_SYMBOL_GPL(have_governor_per_policy);
 
 static struct cpufreq_policy *__cpufreq_cpu_get(unsigned int cpu, bool sysfs)
 {
@@ -461,6 +458,7 @@ static ssize_t show_scaling_governor(struct cpufreq_policy *policy, char *buf)
 				policy->governor->name);
 	return -EINVAL;
 }
+
 
 /**
  * store_scaling_governor - store policy for the specified CPU

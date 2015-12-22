@@ -31,7 +31,7 @@
 # -------------------- user configurable options ------------------------
 
 # base name of driver
-DRIVER_NAME := pax
+DRIVER_NAME = pax
 
 # location to install driver
 INSTALL = .
@@ -86,5 +86,3 @@ clean:
 
 distclean: clean
 	@rm -f $(DRIVER_NAME)*.ko
-
-obj-$(CONFIG_PAX) += $(DRIVER_NAME).o

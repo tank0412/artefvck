@@ -186,10 +186,7 @@ static int AKECS_Set_CNTL(
 			/* Set flag */
 			akm->is_busy = 1;
 			atomic_set(&akm->drdy, 0);
-			/* wait at least 100us after changing mode */	/* Modify for only to impact A600cg */
-    if (Read_PROJ_ID() == PROJ_ID_A600CG) {
-			udelay(100); }
-
+			/* wait at least 100us after changing mode */
 			//udelay(100);
 		}
 	}
@@ -219,9 +216,7 @@ static int AKECS_Set_PowerDown(
 	} else {
 		dev_dbg(&akm->i2c->dev, "Powerdown mode is set.");
 		/* wait at least 100us after changing mode */
-    if (Read_PROJ_ID() == PROJ_ID_A600CG) {
-			udelay(100); }
-
+		//udelay(100);
 	}
 	/* Clear status */
 	akm->is_busy = 0;
@@ -263,13 +258,7 @@ static int AKECS_Reset(
 		}
 	}
 	/* Device will be accessible 100 us after, 300 us reference MTK */
-	    if (Read_PROJ_ID() == PROJ_ID_A500CG) {
-	udelay(300); }
-
-	    if (Read_PROJ_ID() == PROJ_ID_A600CG) {
-			udelay(100); }
-
-
+	udelay(300);
 	/* Clear status */
 	akm->is_busy = 0;
 	atomic_set(&akm->drdy, 0);
@@ -305,8 +294,8 @@ static int AKECS_SetMode(
 			"%s: Unknown mode(%d).", __func__, mode);
 		return -EINVAL;
 	}
-	    if (Read_PROJ_ID() == PROJ_ID_A600CG) {
-			udelay(100); }
+    /* wait at least 100us after changing mode */
+	udelay(100);
 	return err;
 }
 
@@ -1423,7 +1412,6 @@ static int akm09911_i2c_check_device(
 	return err;
 }
 
-
 #if AKM_ATTR_ATD_TEST
 //	add the attr for ATD Test
 static ssize_t get_akm09911_state(struct device *dev, struct device_attribute *devattr, char *buf)
@@ -1523,11 +1511,7 @@ static struct attribute *akm09911_attributes[] = {
 static struct attribute_group akm09911_attribute_group = {
 	.attrs = akm09911_attributes
 };
-
-
-
 #endif
-
 int akm_compass_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
 	struct akm09911_platform_data *pdata;

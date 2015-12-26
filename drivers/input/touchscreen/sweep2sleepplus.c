@@ -501,8 +501,8 @@ static DEVICE_ATTR(touchboost, (S_IWUSR|S_IRUGO),
 // Driver init and exit functions
 /*****************************************/
 
-struct kobject *sweep2sleep_touch_kobj;
-EXPORT_SYMBOL_GPL(sweep2sleep_touch_kobj);
+static struct kobject *sweep2sleep_kobj;
+EXPORT_SYMBOL_GPL(sweep2sleep_kobj);
 
 static int __init sweep2sleep_init(void)
 {
@@ -545,42 +545,42 @@ static int __init sweep2sleep_init(void)
 	
 	register_early_suspend(&screen_detect);
 
-	sweep2sleep_touch_kobj = kobject_create_and_add("android_touch", NULL) ;
-	if (sweep2sleep_touch_kobj == NULL) 
+	sweep2sleep_kobj = kobject_create_and_add("android_touch", NULL) ;
+	if (sweep2sleep_kobj == NULL) 
 	{
-		pr_err(LOGTAG"%s: sweep2sleep_touch_kobj create_and_add failed\n", __func__);
+		pr_err(LOGTAG"%s: sweep2sleep_kobj create_and_add failed\n", __func__);
 		goto err4;
 	}
 
-	rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_sweep2sleep.attr);
+	rc = sysfs_create_file(sweep2sleep_kobj, &dev_attr_sweep2sleep.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep\n", __func__);
 		goto err4;
 	}
 	
-	rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_sweep2sleep_debug.attr);
+	rc = sysfs_create_file(sweep2sleep_kobj, &dev_attr_sweep2sleep_debug.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep_debug\n", __func__);
 		goto err4;
 	}
 	
-	rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_sweep2sleep_version.attr);
+	rc = sysfs_create_file(sweep2sleep_kobj, &dev_attr_sweep2sleep_version.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for sweep2sleep_version\n", __func__);
 		goto err4;
 	}
 	
-	/*rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_is_ze550ml.attr);
+	/*rc = sysfs_create_file(sweep2sleep_kobj, &dev_attr_is_ze550ml.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for is_ze550ml\n", __func__);
 		goto err4;
 	}*/
 	
-	rc = sysfs_create_file(sweep2sleep_touch_kobj, &dev_attr_touchboost.attr);
+	rc = sysfs_create_file(sweep2sleep_kobj, &dev_attr_touchboost.attr);
 	if (rc) 
 	{
 		pr_warn(LOGTAG"%s: sysfs_create_file failed for touchboost\n", __func__);
@@ -616,6 +616,7 @@ err1:
 
 static void __exit sweep2sleep_exit(void)
 {
+	kobject_del(sweep2sleep_kobj);
 	unregister_early_suspend(&screen_detect);
 	input_unregister_handler(&s2s_input_handler);
 	destroy_workqueue(s2s_input_wq);

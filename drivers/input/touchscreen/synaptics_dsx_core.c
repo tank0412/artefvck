@@ -38,9 +38,9 @@
 
 #define INPUT_PHYS_NAME "synaptics_dsx/touch_input"
 
-#ifdef KERNEL_ABOVE_2_6_38
+
 #define TYPE_B_PROTOCOL
-#endif
+
 
 #define NO_0D_WHILE_2D
 #define REPORT_2D_Z
@@ -2701,6 +2701,9 @@ static void synaptics_rmi4_set_params(struct synaptics_rmi4_data *rmi4_data)
 #endif
 #else
 #ifdef TYPE_B_PROTOCOL
+	if (rmi4_data->input_dev->mt &&
+		rmi4_data->input_dev->mt->num_slots != rmi4_data->num_of_fingers)
+		input_mt_destroy_slots(rmi4_data->input_dev);
 	input_mt_init_slots(rmi4_data->input_dev,
 			rmi4_data->num_of_fingers);
 #endif

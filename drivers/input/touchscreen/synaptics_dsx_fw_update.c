@@ -24,6 +24,7 @@
 #include <linux/input.h>
 #include <linux/firmware.h>
 #include <linux/platform_device.h>
+#include <linux/wakelock.h>
 #include <linux/input/synaptics_dsx.h>
 #include "synaptics_dsx_core.h"
 
@@ -296,6 +297,7 @@ struct synaptics_rmi4_fwu_handle {
 	struct delayed_work fwu_work;
 	struct synaptics_rmi4_fn_desc f34_fd;
 	struct synaptics_rmi4_data *rmi4_data;
+	struct wake_lock fwu_wake_lock;
 };
 
 static struct bin_attribute dev_attr_data = {
@@ -711,6 +713,7 @@ static enum flash_area fwu_go_nogo(struct image_header_data *header)
 		goto exit;
 	}
 
+	rmi4_data->stay_awake = true;
 	/* Get device config ID */
 	retval = synaptics_rmi4_reg_read(rmi4_data,
 				fwu->f34_fd.ctrl_base_addr,
@@ -1197,6 +1200,7 @@ static int fwu_start_write_config(void)
 exit:
 	rmi4_data->reset_device(rmi4_data);
 
+	rmi4_data->stay_awake = false;
 	pr_notice("%s: End of write config process\n", __func__);
 
 	return retval;
@@ -1551,6 +1555,7 @@ EXPORT_SYMBOL(synaptics_fw_updater);
 #ifdef DO_STARTUP_FW_UPDATE
 static void fwu_startup_fw_update_work(struct work_struct *work)
 {
+        wake_lock(&fwu->fwu_wake_lock);
 	synaptics_fw_updater(NULL);
 
 	return;
@@ -1874,6 +1879,7 @@ static int synaptics_rmi4_fwu_init(struct synaptics_rmi4_data *rmi4_data)
 	}
 
 #ifdef DO_STARTUP_FW_UPDATE
+	wake_lock_init(&fwu->fwu_wake_lock, WAKE_LOCK_SUSPEND, "fwu_wake_lock");
 	fwu->fwu_workqueue = create_singlethread_workqueue("fwu_workqueue");
 	INIT_DELAYED_WORK(&fwu->fwu_work, fwu_startup_fw_update_work);
 	queue_delayed_work(fwu->fwu_workqueue,

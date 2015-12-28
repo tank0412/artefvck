@@ -177,7 +177,7 @@ static int sfi_processor_get_performance_states(struct sfi_processor *pr)
 #endif	
 
 #ifdef CPU_ATOM_UNDERCLOCK
-	sfi_cpufreq_num = sfi_cpufreq_num + 2; //additional +2 states for the UC, just needed below for the memory allocation
+	sfi_cpufreq_num = sfi_cpufreq_num + 6; //additional +2 states for the UC, just needed below for the memory allocation
 #endif
 
 	pr->performance->state_count = sfi_cpufreq_num;	
@@ -190,7 +190,7 @@ static int sfi_processor_get_performance_states(struct sfi_processor *pr)
 	printk(KERN_INFO "Num p-states %d\n", sfi_cpufreq_num);
 
 #ifdef CPU_ATOM_UNDERCLOCK
-	sfi_cpufreq_num = sfi_cpufreq_num - 2; //need to remove the 2 UC states temporarily
+	sfi_cpufreq_num = sfi_cpufreq_num - 6; //need to remove the 2 UC states temporarily
 #endif
 
 #ifdef CPU_ATOM_OVERCLOCK
@@ -238,18 +238,30 @@ static int sfi_processor_get_performance_states(struct sfi_processor *pr)
 #endif
 
 #ifdef CPU_ATOM_UNDERCLOCK
-	sfi_cpufreq_num = sfi_cpufreq_num + 2; //and now add them back again for cosmetic purposes to make the code more understandable
+	sfi_cpufreq_num = sfi_cpufreq_num + 6; //and now add them back again for cosmetic purposes to make the code more understandable
 	
 //+State [23]: core_frequency[416] transition_latency[100] control[0x52f] -84MHz	100	0x101
 //+State [24]: core_frequency[333] transition_latency[100] control[0x42e] -83MHz	100	0x101
-	pr->performance->states[sfi_cpufreq_num-2].core_frequency = sfi_cpufreq_array[last_PState].freq_mhz - 84; //416MHz
+	pr->performance->states[sfi_cpufreq_num-6].core_frequency = sfi_cpufreq_array[last_PState].freq_mhz - 84; //716
+	pr->performance->states[sfi_cpufreq_num-6].transition_latency = sfi_cpufreq_array[last_PState].latency;
+	pr->performance->states[sfi_cpufreq_num-6].control = sfi_cpufreq_array[last_PState].ctrl_val - 0x101;
+	pr->performance->states[sfi_cpufreq_num-5].core_frequency = sfi_cpufreq_array[last_PState].freq_mhz - 84 - 83; //633
+	pr->performance->states[sfi_cpufreq_num-5].transition_latency = sfi_cpufreq_array[last_PState].latency;
+	pr->performance->states[sfi_cpufreq_num-5].control = sfi_cpufreq_array[last_PState].ctrl_val - 0x101 - 0x101;
+	pr->performance->states[sfi_cpufreq_num-4].core_frequency = sfi_cpufreq_array[last_PState].freq_mhz - 84 - 83 - 83; //550
+	pr->performance->states[sfi_cpufreq_num-4].transition_latency = sfi_cpufreq_array[last_PState].latency;
+	pr->performance->states[sfi_cpufreq_num-4].control = sfi_cpufreq_array[last_PState].ctrl_val - 0x101 - 0x101 - 0x101;
+	pr->performance->states[sfi_cpufreq_num-3].core_frequency = sfi_cpufreq_array[last_PState].freq_mhz - 84 - 83 - 83 - 84; //466
+	pr->performance->states[sfi_cpufreq_num-3].transition_latency = sfi_cpufreq_array[last_PState].latency;
+	pr->performance->states[sfi_cpufreq_num-3].control = sfi_cpufreq_array[last_PState].ctrl_val - 0x101 - 0x101 - 0x101 - 0x101;
+	pr->performance->states[sfi_cpufreq_num-2].core_frequency = sfi_cpufreq_array[last_PState].freq_mhz - 84 - 83 - 83 - 84 - 83; //383
 	pr->performance->states[sfi_cpufreq_num-2].transition_latency = sfi_cpufreq_array[last_PState].latency;
-	pr->performance->states[sfi_cpufreq_num-2].control = sfi_cpufreq_array[last_PState].ctrl_val - 0x101;
-	pr->performance->states[sfi_cpufreq_num-1].core_frequency = sfi_cpufreq_array[last_PState].freq_mhz - 84 - 83; //333MHz
+	pr->performance->states[sfi_cpufreq_num-2].control = sfi_cpufreq_array[last_PState].ctrl_val - 0x101 - 0x101 - 0x101 - 0x101 - 0x101;
+	pr->performance->states[sfi_cpufreq_num-1].core_frequency = sfi_cpufreq_array[last_PState].freq_mhz - 84 - 83 - 83 - 84 - 83 - 83; //300
 	pr->performance->states[sfi_cpufreq_num-1].transition_latency = sfi_cpufreq_array[last_PState].latency;
-	pr->performance->states[sfi_cpufreq_num-1].control = sfi_cpufreq_array[last_PState].ctrl_val - 0x101 - 0x101;
-		
-	for(i = sfi_cpufreq_num - 2; i<sfi_cpufreq_num; i++)
+	pr->performance->states[sfi_cpufreq_num-1].control = sfi_cpufreq_array[last_PState].ctrl_val - 0x101 - 0x101 - 0x101 - 0x101 - 0x101 - 0x101;
+	
+	for(i = sfi_cpufreq_num - 6; i<sfi_cpufreq_num; i++)
 	{
 		printk(KERN_INFO "UC State [%d]: core_frequency[%d] transition_latency[%d] control[0x%x]\n",
 			i,
@@ -257,7 +269,7 @@ static int sfi_processor_get_performance_states(struct sfi_processor *pr)
 			(u32) pr->performance->states[i].transition_latency,
 			(u32) pr->performance->states[i].control);
 	}
-#endif
+#endif 
 
 	return result;
 }

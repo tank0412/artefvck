@@ -1201,16 +1201,16 @@ gov_sys_pol_attr_rw(touchboostpulse_duration);
 gov_sys_pol_attr_rw(io_is_busy);
 
 static struct global_attr boostpulse_gov_sys =
-	__ATTR(boostpulse, 0200, NULL, store_boostpulse_gov_sys);
+	__ATTR(boostpulse, 0222, NULL, store_boostpulse_gov_sys);
 
 static struct freq_attr boostpulse_gov_pol =
-	__ATTR(boostpulse, 0200, NULL, store_boostpulse_gov_pol);
+	__ATTR(boostpulse, 0222, NULL, store_boostpulse_gov_pol);
 
 static struct global_attr touchboostpulse_gov_sys =
-	__ATTR(touchboostpulse, 0200, NULL, store_touchboostpulse_gov_sys);
+	__ATTR(touchboostpulse, 0222, NULL, store_touchboostpulse_gov_sys);
 
 static struct freq_attr touchboostpulse_gov_pol =
-	__ATTR(touchboostpulse, 0200, NULL, store_touchboostpulse_gov_pol);
+	__ATTR(touchboostpulse, 0222, NULL, store_touchboostpulse_gov_pol);
 
 /* One Governor instance for entire system */
 static struct attribute *interactive_attributes_gov_sys[] = {
@@ -1387,7 +1387,7 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 			tunables->hispeed_freq = policy->max;
 
 		if (!tunables->touchboost_freq)
-			tunables->touchboost_freq = policy->max;
+			tunables->touchboost_freq = policy->max - 500000; //1.83GHz for 2.33GHz models, 1.33GHz for the 1.83GHz models
 		for_each_cpu(j, policy->cpus) {
 			pcpu = &per_cpu(cpuinfo, j);
 			pcpu->policy = policy;

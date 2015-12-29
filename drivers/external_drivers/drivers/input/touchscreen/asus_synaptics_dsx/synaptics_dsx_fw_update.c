@@ -33,10 +33,10 @@
 #define FW_IMAGE_NAME_A600_Ofilm "synaptics/startup_fw_update_A600_Ofilm_1593779_364F0114.img"
 #define FW_IMAGE_NAME_A600_JTouch "synaptics/startup_fw_update_A600_JTouch_1593779_364A0114.img"
 
-//<ASUS+>/*
-#define DO_STARTUP_FW_UPDATE
-//<ASUS+>*/
-#define STARTUP_FW_UPDATE_DELAY_MS 1000 /* ms */
+/*
+ #define DO_STARTUP_FW_UPDATE
+*/
+
 #define FORCE_UPDATE false
 #define DO_LOCKDOWN false
 
@@ -292,7 +292,7 @@ struct synaptics_rmi4_fwu_handle {
 	const unsigned char *disp_config_data;
 	const unsigned char *lockdown_data;
 	struct workqueue_struct *fwu_workqueue;
-	struct delayed_work fwu_work;
+	struct work_struct fwu_work;
 	struct synaptics_rmi4_fn_desc f34_fd;
 	struct synaptics_rmi4_data *rmi4_data;
 };
@@ -1863,10 +1863,9 @@ static int synaptics_rmi4_fwu_init(struct synaptics_rmi4_data *rmi4_data)
 
 #ifdef DO_STARTUP_FW_UPDATE
 	fwu->fwu_workqueue = create_singlethread_workqueue("fwu_workqueue");
-	INIT_DELAYED_WORK(&fwu->fwu_work, fwu_startup_fw_update_work);
-	queue_delayed_work(fwu->fwu_workqueue,
-			&fwu->fwu_work,
-			msecs_to_jiffies(STARTUP_FW_UPDATE_DELAY_MS));
+	INIT_WORK(&fwu->fwu_work, fwu_startup_fw_update_work);
+	queue_work(fwu->fwu_workqueue,
+			&fwu->fwu_work);
 #endif
 
 	return 0;
@@ -1896,6 +1895,12 @@ static void synaptics_rmi4_fwu_remove(struct synaptics_rmi4_data *rmi4_data)
 
 	if (!fwu)
 		goto exit;
+
+#ifdef DO_STARTUP_FW_UPDATE
+	cancel_work_sync(&fwu->fwu_work);
+	flush_workqueue(fwu->fwu_workqueue);
+	destroy_workqueue(fwu->fwu_workqueue);
+#endif
 
 	for (attr_count = 0; attr_count < ARRAY_SIZE(attrs); attr_count++) {
 		sysfs_remove_file(&rmi4_data->input_dev->dev.kobj,

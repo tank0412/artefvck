@@ -892,17 +892,17 @@ config TOUCHSCREEN_HIMAX_HX8528_ME372CL
 	bool "Himax HX8528 touchscreen"
 	depends on I2C && PF450CL
 
-config TOUCHSCREEN_SYNAPTICS_DSX_I2C
+config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 	bool "I2C"
 	depends on I2C
 
-config TOUCHSCREEN_SYNAPTICS_DSX_SPI
+config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_SPI
 	bool "SPI"
 	depends on SPI_MASTER
 
-config TOUCHSCREEN_SYNAPTICS_DSX_CORE
+config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_CORE
 	tristate "Synaptics DSX core driver module"
-	depends on TOUCHSCREEN_SYNAPTICS_DSX_I2C || TOUCHSCREEN_SYNAPTICS_DSX_SPI
+	depends on TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C || TOUCHSCREEN_SYNAPTICS_DSX_ASUS_SPI
 	help
 	  Say Y here to enable basic touch reporting functionalities.
 
@@ -911,9 +911,9 @@ config TOUCHSCREEN_SYNAPTICS_DSX_CORE
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_core.
 
-config TOUCHSCREEN_SYNAPTICS_DSX_RMI_DEV
+config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_RMI_DEV
 	tristate "Synaptics DSX touchscreen RMI device module"
-	depends on TOUCHSCREEN_SYNAPTICS_DSX_CORE
+	depends on TOUCHSCREEN_SYNAPTICS_DSX_ASUS_CORE
 	help
 	  Say Y here to enable support for direct RMI register access.
 
@@ -922,9 +922,9 @@ config TOUCHSCREEN_SYNAPTICS_DSX_RMI_DEV
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_rmi_dev.
 
-config TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE
+config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_FW_UPDATE
 	tristate "Synaptics DSX touchscreen firmware update module"
-	depends on TOUCHSCREEN_SYNAPTICS_DSX_CORE
+	depends on TOUCHSCREEN_SYNAPTICS_DSX_ASUS_CORE
 	help
 	  Say Y here to enable support for carrying out firmware update.
 
@@ -933,9 +933,9 @@ config TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_fw_update.
 
-config TOUCHSCREEN_SYNAPTICS_DSX_TEST_REPORTING
+config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_TEST_REPORTING
 	tristate "Synaptics DSX touchscreen test reporting module"
-	depends on TOUCHSCREEN_SYNAPTICS_DSX_CORE
+	depends on TOUCHSCREEN_SYNAPTICS_DSX_ASUS_CORE
 	help
 	  Say Y here to enable support for retrieving self-test reports.
 
@@ -944,9 +944,9 @@ config TOUCHSCREEN_SYNAPTICS_DSX_TEST_REPORTING
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_test_reporting.
 
-config TOUCHSCREEN_SYNAPTICS_DSX_PROXIMITY
+config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_PROXIMITY
 	tristate "Synaptics DSX touchscreen proximity module"
-	depends on TOUCHSCREEN_SYNAPTICS_DSX_CORE
+	depends on TOUCHSCREEN_SYNAPTICS_DSX_ASUS_CORE
 	help
 	  Say Y here to enable support for proximity functionalities.
 
@@ -955,9 +955,9 @@ config TOUCHSCREEN_SYNAPTICS_DSX_PROXIMITY
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_proximity.
 
-config TOUCHSCREEN_SYNAPTICS_DSX_ACTIVE_PEN
+config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_ACTIVE_PEN
 	tristate "Synaptics DSX touchscreen active pen module"
-	depends on TOUCHSCREEN_SYNAPTICS_DSX_CORE
+	depends on TOUCHSCREEN_SYNAPTICS_DSX_ASUS_CORE
 	help
 	  Say Y here to enable support for active pen functionalities.
 

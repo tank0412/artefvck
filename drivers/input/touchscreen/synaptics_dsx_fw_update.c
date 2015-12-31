@@ -25,7 +25,7 @@
 #include <linux/firmware.h>
 #include <linux/platform_device.h>
 #include <linux/wakelock.h>
-#include <linux/input/synaptics_dsx.h>
+#include <linux/input/synaptics_dsx_asus.h>
 #include "synaptics_dsx_core.h"
 
 //<ASUS+>#define FW_IMAGE_NAME "synaptics/startup_fw_update.img"

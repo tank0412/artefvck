@@ -4,7 +4,7 @@
 #ifndef _PLATFORM_SYNAPTICS_DSX_H_
 #define _PLATFORM_SYNAPTICS_DSX_H_
 
-#include <linux/input/synaptics_dsx.h>
+#include <linux/input/synaptics_dsx_asus.h>
 
 extern void get_dsx_platformdata(void *info);
 #endif

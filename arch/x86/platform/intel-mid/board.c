@@ -93,7 +93,7 @@
 #include "device_libs/platform_cm3628.h"
 #include "device_libs/platform_pca9574.h"
 #include "device_libs/platform_hx8528_me372cl.h"
-#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 #include "device_libs/platform_synaptics_dsx.h"
 #endif
 

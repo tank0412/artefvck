@@ -892,6 +892,17 @@ config TOUCHSCREEN_HIMAX_HX8528_ME372CL
 	bool "Himax HX8528 touchscreen"
 	depends on I2C && PF450CL
 
+menuconfig TOUCHSCREEN_SYNAPTICS_DSX_ASUS
+	bool "Synaptics DSX touchscreen"
+	default y
+	help
+	  Say Y here if you have a Synaptics DSX asus modifed touchscreen connected
+	  to your system.
+
+	  If unsure, say N.
+
+if TOUCHSCREEN_SYNAPTICS_DSX_ASUS
+
 config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 	bool "I2C"
 	depends on I2C
@@ -966,6 +977,7 @@ config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_ACTIVE_PEN
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_active_pen.
 
+endif
 source "drivers/input/touchscreen/synaptics_dsx/Kconfig"
 
 endif

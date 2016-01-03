@@ -146,6 +146,7 @@ fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_FW_UPDATE) += synaptics/start
 endif
 
 ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX
+fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE) += synaptics/startup_fw_update.img
 fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE) += synaptics/startup_fw_update_A500_LCE_1688183_354C0121.img
 fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE) += synaptics/startup_fw_update_A500_JTouch_1688183_354A0129.img
 fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE) += synaptics/startup_fw_update_A500_YFO_1688183_3559003.img

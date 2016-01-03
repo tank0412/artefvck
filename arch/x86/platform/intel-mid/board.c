@@ -62,7 +62,9 @@
 #include "device_libs/platform_msic_adc.h"
 #include "device_libs/platform_bcove_adc.h"
 #include "device_libs/platform_scale_adc.h"
+#ifdef CONFIG_BQ51003_POWER
 #include "device_libs/platform_bq51003.h"
+#endif
 #include <asm/platform_mrfld_audio.h>
 #include <asm/platform_ctp_audio.h>
 #include "device_libs/platform_mrfl_thermal.h"
@@ -488,8 +490,9 @@ struct devs_id __initconst device_ids[] = {
 						&ipc_device_handler},
 	{"i2c_pmic_adap", SFI_DEV_TYPE_IPC, 1, &mrfl_pmic_i2c_platform_data,
 						&ipc_device_handler},
+#ifdef CONFIG_BQ51003_POWER
 	{"bq51003_power", SFI_DEV_TYPE_IPC, 0, &bq51003_platform_data, NULL},
-
+#endif
 	/* IPC devices */
 	{"ctp_rt5671", SFI_DEV_TYPE_IPC, 1, &ctp_audio_platform_data,
 						&ipc_device_handler},

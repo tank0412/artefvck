@@ -348,7 +348,7 @@ struct devs_id __initconst device_ids[] = {
 		&panel_handler},
 
 	/* Touch */
-#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 	{"synaptics_dsx_i2c", SFI_DEV_TYPE_I2C, 0, &get_dsx_platformdata, NULL},
 #endif
 

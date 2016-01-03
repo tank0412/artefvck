@@ -172,7 +172,7 @@ static struct mdfld_dsi_config *orise1283a_dsi_config;
 
 /* ====Initial settings==== */
 /* OTM1283A settings */
-#if !ENABLE_SHORT_PACKAGE_CMD
+#ifdef ENABLE_SHORT_PACKAGE_CMD
 static u8 cm_00[] = {0x00, 0x00};
 static u8 cm_80[] = {0x00, 0x80};
 static u8 cm_81[] = {0x00, 0x81};
@@ -309,7 +309,7 @@ static u8 display_off[] = {0x28};
 
 /* ====Power on commnad==== */
 /* OTM1283A settings */
-#if !ENABLE_SHORT_PACKAGE_CMD
+#ifdef ENABLE_SHORT_PACKAGE_CMD
 static struct mipi_dsi_cmd a500cg_power_on_table[] = {
 	//Command2
 	{0, sizeof(cm_00), cm_00},
@@ -823,7 +823,7 @@ static int orise1283a_vid_drv_ic_init(struct mdfld_dsi_config *dsi_config){
 	if (board_proj_id == PROJ_ID_A500CG || board_proj_id == PROJ_ID_A501CG || board_proj_id == PROJ_ID_A500CG_ID
                         ||board_proj_id == PROJ_ID_A501CG_ID || board_proj_id == PROJ_ID_A502CG) {
 		printk("[DISP] %s : A500CG series init : ", __func__);
-#if !ENABLE_SHORT_PACKAGE_CMD
+#ifdef ENABLE_SHORT_PACKAGE_CMD
 		printk(" Long package\n");
 		for(i = 0; i < ARRAY_SIZE(a500cg_power_on_table); i++)
 			send_mipi_cmd_gen(sender, &a500cg_power_on_table[i]);
@@ -1761,7 +1761,7 @@ static int orise1283a_vid_drv_ic_init(struct mdfld_dsi_config *dsi_config){
 			mdelay(10);
 		} else {
 			printk("[DISP] %s : A600CG series init LCD_ID_HSD: \n", __func__);
-#if !ENABLE_SHORT_PACKAGE_CMD
+#ifdef ENABLE_SHORT_PACKAGE_CMD
 		printk(" Long package\n");
 		for(i = 0; i < ARRAY_SIZE(a600cg_power_on_table); i++)
 			send_mipi_cmd_gen(sender, &a600cg_power_on_table[i]);
@@ -2990,7 +2990,8 @@ static int orise1283a_vid_set_brightness(struct mdfld_dsi_config *dsi_config,
 	if (board_proj_id == PROJ_ID_A600CG || board_proj_id == PROJ_ID_A601CG)
 		pwm_min = 5;
 	else
-		pwm_min = 13;
+		//pwm_min = 13;
+		pwm_min = 5;
 	pwm_max = 255;
 
 	if (level <= 0) {
@@ -3010,7 +3011,7 @@ static int orise1283a_vid_set_brightness(struct mdfld_dsi_config *dsi_config,
 		DRM_ERROR("write brightness duty value faild\n");
 #endif
 
-	printk("[DISP] brightness level = %d , duty_val = %d\n", level, duty_val);
+	printk("[DISP ORISE] brightness level = %d , duty_val = %d\n", level, duty_val);
 
 	return 0;
 }

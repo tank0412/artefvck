@@ -84,8 +84,8 @@ obj-$(subst m,y,$(CONFIG_INPUT_DRV2605_VIBRA)) += platform_drv2605.o
 obj-$(subst m,y,$(CONFIG_ST_LIS3DSH)) += platform_lis3dsh.o
 obj-$(subst m,y,$(CONFIG_ST_LSM6DS3_IIO)) += platform_lsm6ds3.o
 
-ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C
-obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C))                += platform_synaptics_dsx.o
+ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
+obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C))                += platform_synaptics_dsx.o
 endif
 
 # SPI Devices

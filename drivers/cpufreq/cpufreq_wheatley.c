@@ -26,7 +26,7 @@
 #include <linux/cpuidle.h>
 
 #define cputime64_sub(__a, __b)         ((__a) - (__b))
-
+/*
 static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall)
 {
 	u64 idle_time;
@@ -60,7 +60,7 @@ static u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy)
 
 	return idle_time;
 }
-
+*/
 /*
  * dbs is used in this file as a shortform for demandbased switching
  * It helps to keep variable names smaller, simpler

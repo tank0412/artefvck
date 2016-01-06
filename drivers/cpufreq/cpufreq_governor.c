@@ -44,7 +44,7 @@ static struct attribute_group *get_sysfs_attr(struct dbs_data *dbs_data)
 	else
 		return dbs_data->cdata->attr_group_gov_sys;
 }
-
+/*
 static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall)
 {
 	u64 idle_time;
@@ -78,7 +78,8 @@ u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy)
 
 	return idle_time;
 }
-EXPORT_SYMBOL_GPL(get_cpu_idle_time);
+*/
+//EXPORT_SYMBOL_GPL(get_cpu_idle_time);
 
 void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 {

@@ -47,7 +47,7 @@
 #endif
 
 #define cputime64_sub(__a, __b)         ((__a) - (__b))
-
+/*
 static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall)
 {
 	u64 idle_time;
@@ -81,7 +81,7 @@ static u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy)
 
 	return idle_time;
 }
-
+*/
 #define DEF_FREQUENCY_UP_THRESHOLD		(65)
 #define DEF_FREQUENCY_DOWN_THRESHOLD		(30)
 #define MIN_SAMPLING_RATE_RATIO			(2)

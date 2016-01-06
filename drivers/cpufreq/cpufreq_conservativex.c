@@ -99,7 +99,7 @@ static struct dbs_tuners {
 };
 
 #define cputime64_sub(__a, __b)         ((__a) - (__b))
-
+/*
 static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall)
 {
 	u64 idle_time;
@@ -133,7 +133,7 @@ static u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy)
 
 	return idle_time;
 }
-
+*/
 /* keep track of frequency transitions */
 static int
 dbs_cpufreq_notifier(struct notifier_block *nb, unsigned long val,

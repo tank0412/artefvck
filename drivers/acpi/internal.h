@@ -51,13 +51,6 @@ void acpi_memory_hotplug_init(void);
 #else
 static inline void acpi_memory_hotplug_init(void) {}
 #endif
-#ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
-int acpi_ioapic_add(struct acpi_pci_root *root);
-int acpi_ioapic_remove(struct acpi_pci_root *root);
-#else
-static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
-static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
-#endif
 #ifdef CONFIG_X86
 void acpi_cmos_rtc_init(void);
 #else

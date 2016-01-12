@@ -44,6 +44,8 @@ endif
 obj-$(subst m,y,$(CONFIG_SENSORS_THERMAL_MRFLD)) += platform_mrfl_thermal.o
 obj-$(subst m,y,$(CONFIG_INTEL_MOOR_THERMAL)) += platform_moor_thermal.o
 obj-$(subst m,y,$(CONFIG_INTEL_SCU_FLIS)) += platform_scu_flis.o
+obj-$(subst m,y,$(CONFIG_BQ51003_POWER)) += platform_bq51003.o
+obj-$(subst m,y,$(CONFIG_BQ24232_CHARGER)) += platform_bq24232.o
 
 # I2C Devices
 obj-$(subst m,y,$(CONFIG_I2C_DESIGNWARE_CORE_FORK)) += platform_dw_i2c.o
@@ -64,6 +66,7 @@ obj-$(subst m,y,$(CONFIG_SND_SOC_WM8994)) += platform_wm8994.o
 obj-$(subst m,y,$(CONFIG_INTEL_CRYSTALCOVE_PAGE0)) += platform_crystalcove_page0.o
 obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4_FORK)) += platform_rmi4.o
 obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_R69001_I2C)) += platform_r69001.o
+obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX)) += platform_s1222.o
 obj-$(subst m,y,$(CONFIG_NFC_PN544_PLATFORM_DATA)) += platform_pn544.o
 obj-$(subst m,y,$(CONFIG_NFC_FDP_PLATFORM_DATA)) += platform_fdp.o
 obj-$(subst m,y,$(CONFIG_SENSORS_L3G4200D_POLL)) += platform_l3g4200d.o
@@ -77,8 +80,13 @@ obj-$(subst m,y,$(CONFIG_SND_SOC_WM5102)) += platform_wm5102.o
 obj-$(subst m,y,$(CONFIG_SENSORS_CM3628)) += platform_cm3628.o
 obj-$(subst m,y,$(CONFIG_GPIO_PCA953X)) += platform_pca9574.o
 obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_HIMAX_HX8528_ME372CL)) += platform_hx8528_me372cl.o
-ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C
-obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C))                += platform_synaptics_dsx.o
+
+obj-$(subst m,y,$(CONFIG_INPUT_DRV2605_VIBRA)) += platform_drv2605.o
+obj-$(subst m,y,$(CONFIG_ST_LIS3DSH)) += platform_lis3dsh.o
+obj-$(subst m,y,$(CONFIG_ST_LSM6DS3_IIO)) += platform_lsm6ds3.o
+
+ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
+obj-$(subst m,y,$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C))                += platform_synaptics_dsx.o
 endif
 
 # SPI Devices

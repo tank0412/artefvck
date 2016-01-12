@@ -63,6 +63,9 @@ static struct acpi_scan_handler pci_root_handler = {
 	.ids = root_device_ids,
 	.attach = acpi_pci_root_add,
 	.detach = acpi_pci_root_remove,
+	.hotplug = {
+		.ignore = true,
+	},
 };
 
 /* Lock to protect both acpi_pci_roots lists */
@@ -536,7 +539,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
 	if (system_state != SYSTEM_BOOTING) {
 		pcibios_resource_survey_bus(root->bus);
 		pci_assign_unassigned_bus_resources(root->bus);
-		acpi_ioapic_add(root);
 	}
 
 	/* need to after hot-added ioapic is registered */
@@ -561,8 +563,6 @@ static void acpi_pci_root_remove(struct acpi_device *device)
 	struct acpi_pci_root *root = acpi_driver_data(device);
 
 	pci_stop_root_bus(root->bus);
-
-	WARN_ON(acpi_ioapic_remove(root));
 
 	device_set_run_wake(root->bus->bridge, false);
 	pci_acpi_remove_bus_pm_notifier(device);
@@ -617,9 +617,12 @@ static void handle_root_bridge_removal(struct acpi_device *device)
 	ej_event->device = device;
 	ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
 
+	get_device(&device->dev);
 	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
-	if (ACPI_FAILURE(status))
+	if (ACPI_FAILURE(status)) {
+		put_device(&device->dev);
 		kfree(ej_event);
+	}
 }
 
 static void _handle_hotplug_event_root(struct work_struct *work)

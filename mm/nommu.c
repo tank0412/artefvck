@@ -777,10 +777,10 @@ static void delete_vma_from_mm(struct vm_area_struct *vma)
 
 	mm->map_count--;
 	for (i = 0; i < VMACACHE_SIZE; i++) {
-	 /* if the vma is cached, invalidate the entire cache */
-	 if (curr->vmacache[i] == vma) {
-		vmacache_invalidate(curr->mm);
-		break;
+		/* if the vma is cached, invalidate the entire cache */
+		if (curr->vmacache[i] == vma) {
+			vmacache_invalidate(curr->mm);
+			break;
 		}
 	}
 
@@ -1906,7 +1906,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
  */
 int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
 {
-	unsigned long free, allowed, reserve;
+	long free, allowed, reserve;
 
 	vm_acct_memory(pages);
 
@@ -1971,7 +1971,7 @@ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
 	 */
 	if (mm) {
 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
-		allowed -= min(mm->total_vm / 32, reserve);
+		allowed -= min_t(long, mm->total_vm / 32, reserve);
 	}
 
 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)

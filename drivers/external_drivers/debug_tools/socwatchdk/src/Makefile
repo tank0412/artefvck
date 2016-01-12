@@ -94,10 +94,10 @@ DRIVER_BASE=SOCWATCH
 DRIVER_MAJOR=1
 DRIVER_MINOR=5
 # basic name of driver
-DRIVER_NAME := ${DRIVER_BASE}${DRIVER_MAJOR}_${DRIVER_MINOR}
+DRIVER_NAME=${DRIVER_BASE}${DRIVER_MAJOR}_${DRIVER_MINOR}
 
 # location to install driver
-INSTALL = ../../../../../drivers/external_drivers/debug_tools/socwatchdk/src
+INSTALL = .
 
 INCDIR=$(M)/../include
 INC2=$(M)/inc

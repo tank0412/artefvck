@@ -62,12 +62,17 @@
 #include "device_libs/platform_msic_adc.h"
 #include "device_libs/platform_bcove_adc.h"
 #include "device_libs/platform_scale_adc.h"
+#ifdef CONFIG_BQ51003_POWER
+#include "device_libs/platform_bq51003.h"
+#endif
 #include <asm/platform_mrfld_audio.h>
 #include <asm/platform_ctp_audio.h>
 #include "device_libs/platform_mrfl_thermal.h"
 #include "device_libs/platform_moor_thermal.h"
 #include "device_libs/platform_scu_log.h"
-
+#ifdef CONFIG_BQ24232_CHARGER
+#include "device_libs/platform_bq24232.h"
+#endif
 /*
  * I2C devices
  */
@@ -83,6 +88,9 @@
 #include "device_libs/platform_bq24192.h"
 #include "device_libs/platform_bq24261.h"
 #include "device_libs/platform_r69001.h"
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX
+#include "device_libs/platform_s1222.h"
+#endif
 #include "device_libs/platform_pn544.h"
 #include "device_libs/platform_fdp.h"
 #include "device_libs/platform_l3g4200d.h"
@@ -93,9 +101,21 @@
 #include "device_libs/platform_cm3628.h"
 #include "device_libs/platform_pca9574.h"
 #include "device_libs/platform_hx8528_me372cl.h"
-#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C
+
+#ifdef CONFIG_INPUT_DRV2605_VIBRA
+#include "device_libs/platform_drv2605.h"
+#endif
+#ifdef CONFIG_ST_LIS3DSH
+#include "device_libs/platform_lis3dsh.h"
+#endif
+#ifdef CONFIG_ST_LSM6DS3_IIO
+#include "device_libs/platform_lsm6ds3.h"
+#endif
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 #include "device_libs/platform_synaptics_dsx.h"
 #endif
+
+
 
 /* SW devices */
 #include "device_libs/platform_panel.h"
@@ -227,6 +247,9 @@ struct devs_id __initconst device_ids[] = {
 	{"mpu3050", SFI_DEV_TYPE_I2C, 1, &mpu3050_platform_data, NULL},
 	{"i2c_disp_brig", SFI_DEV_TYPE_I2C, 0, &tc35876x_platform_data, NULL},
 	{"r69001-ts-i2c", SFI_DEV_TYPE_I2C, 0, &r69001_platform_data, NULL},
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX
+	{"synaptics_1222", SFI_DEV_TYPE_I2C, 0, &s1222_platform_data, NULL},
+#endif
 	{"synaptics_3202", SFI_DEV_TYPE_I2C, 0, &rmi4_platform_data, NULL},
 	{"syn_3400_cgs", SFI_DEV_TYPE_I2C, 0, &rmi4_platform_data, NULL},
 	{"syn_3400_igzo", SFI_DEV_TYPE_I2C, 0, &rmi4_platform_data, NULL},
@@ -250,6 +273,10 @@ struct devs_id __initconst device_ids[] = {
 	{"MNZX8000", SFI_DEV_TYPE_I2C, 0, &no_platform_data, NULL},
 	{"pca953x", SFI_DEV_TYPE_I2C, 0, &nxp_pca9574_platform_data, NULL},
 	{"hx8528", SFI_DEV_TYPE_I2C, 0, &hx8528_platform_data},
+
+#ifdef CONFIG_INPUT_DRV2605_VIBRA
+	{"drv2605", SFI_DEV_TYPE_I2C, 0, &drv2605_platform_data, NULL},
+#endif
 #if defined(CONFIG_A500CG_BATTERY_SMB347)
 	{"smb347_charger", SFI_DEV_TYPE_I2C, 0, &smb347_platform_data, NULL},
 #endif
@@ -271,7 +298,12 @@ struct devs_id __initconst device_ids[] = {
 	{"bq27520", SFI_DEV_TYPE_I2C, 0, &bq27520_platform_data, NULL},
 	{"bq27520f", SFI_DEV_TYPE_I2C, 0, &no_platform_data, NULL},
 #endif
-
+#ifdef CONFIG_ST_LIS3DSH
+	{"lis3dsh_acc", SFI_DEV_TYPE_I2C, 0, &lis3dsh_platform_data, NULL},
+#endif
+#ifdef CONFIG_ST_LSM6DS3_IIO
+	{"lsm6ds3", SFI_DEV_TYPE_I2C, 0, &lsm6ds3_platform_data, NULL},
+#endif
 	/* MSIC subdevices */
 	{"msic_adc", SFI_DEV_TYPE_IPC, 1, &msic_adc_platform_data,
 						&ipc_device_handler},
@@ -316,7 +348,7 @@ struct devs_id __initconst device_ids[] = {
 		&panel_handler},
 
 	/* Touch */
-#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_I2C
 	{"synaptics_dsx_i2c", SFI_DEV_TYPE_I2C, 0, &get_dsx_platformdata, NULL},
 #endif
 
@@ -464,7 +496,9 @@ struct devs_id __initconst device_ids[] = {
 						&ipc_device_handler},
 	{"i2c_pmic_adap", SFI_DEV_TYPE_IPC, 1, &mrfl_pmic_i2c_platform_data,
 						&ipc_device_handler},
-
+#ifdef CONFIG_BQ51003_POWER
+	{"bq51003_power", SFI_DEV_TYPE_IPC, 0, &bq51003_platform_data, NULL},
+#endif
 	/* IPC devices */
 	{"ctp_rt5671", SFI_DEV_TYPE_IPC, 1, &ctp_audio_platform_data,
 						&ipc_device_handler},
@@ -482,6 +516,9 @@ struct devs_id __initconst device_ids[] = {
 						&ipc_device_handler},
 	{"soc_thrm", SFI_DEV_TYPE_IPC, 1, &no_platform_data,
 						&soc_thrm_device_handler},
+#ifdef CONFIG_BQ24232_CHARGER
+	{"bq24232_charger", SFI_DEV_TYPE_IPC, 1, &bq24232_charger_platform_data, NULL},
+#endif
 	{"wm8958", SFI_DEV_TYPE_I2C, 0, &wm8994_platform_data, NULL},
 	{"wm5102", SFI_DEV_TYPE_I2C, 0, &wm5102_platform_data, NULL},
 	{"lm49453_codec", SFI_DEV_TYPE_I2C, 1, &no_platform_data, NULL},

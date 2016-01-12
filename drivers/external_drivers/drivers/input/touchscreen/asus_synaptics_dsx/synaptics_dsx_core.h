@@ -101,8 +101,8 @@
 
 enum exp_fn {
 	RMI_DEV = 0,
-	RMI_F54,
 	RMI_FW_UPDATER,
+	RMI_TEST_REPORTING,
 	RMI_PROXIMITY,
 	RMI_ACTIVE_PEN,
 	RMI_LAST,
@@ -269,7 +269,6 @@ struct synaptics_rmi4_data {
 	int sensor_max_y;
 	bool flash_prog_mode;
 	bool irq_enabled;
-	bool touch_stopped;
 	bool fingers_on_2d;
 	bool sensor_sleep;
 	bool stay_awake;

@@ -119,7 +119,8 @@ static ssize_t iio_scan_el_show(struct device *dev,
 	int ret;
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 
-	ret = test_bit(to_iio_dev_attr(attr)->address,
+	/* Ensure ret is 0 or 1. */
+	ret = !!test_bit(to_iio_dev_attr(attr)->address,
 		       indio_dev->buffer->scan_mask);
 
 	return sprintf(buf, "%d\n", ret);
@@ -408,6 +409,53 @@ ssize_t iio_buffer_write_length(struct device *dev,
 	return ret ? ret : len;
 }
 EXPORT_SYMBOL(iio_buffer_write_length);
+
+ssize_t iio_buffer_read_store_length(struct device *dev,
+			       struct device_attribute *attr,
+			       char *buf)
+{
+	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
+	struct iio_buffer *buffer = indio_dev->buffer;
+
+	if (buffer->access->get_store_length)
+		return sprintf(buf, "%d\n",
+			       buffer->access->get_store_length(buffer));
+
+	return 0;
+}
+EXPORT_SYMBOL(iio_buffer_read_store_length);
+
+ssize_t iio_buffer_write_store_length(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf,
+				size_t len)
+{
+	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
+	struct iio_buffer *buffer = indio_dev->buffer;
+	unsigned int val;
+	int ret;
+
+	ret = kstrtouint(buf, 10, &val);
+	if (ret)
+		return ret;
+
+	if (buffer->access->get_store_length)
+		if (val == buffer->access->get_store_length(buffer))
+			return len;
+
+	mutex_lock(&indio_dev->mlock);
+	if (iio_buffer_is_active(indio_dev, indio_dev->buffer)) {
+		ret = -EBUSY;
+	} else {
+		if (buffer->access->set_store_length)
+			buffer->access->set_store_length(buffer, val);
+		ret = 0;
+	}
+	mutex_unlock(&indio_dev->mlock);
+
+	return ret ? ret : len;
+}
+EXPORT_SYMBOL(iio_buffer_write_store_length);
 
 ssize_t iio_buffer_show_enable(struct device *dev,
 			       struct device_attribute *attr,
@@ -762,7 +810,8 @@ int iio_scan_mask_query(struct iio_dev *indio_dev,
 	if (!buffer->scan_mask)
 		return 0;
 
-	return test_bit(bit, buffer->scan_mask);
+	/* Ensure return value is 0 or 1. */
+	return !!test_bit(bit, buffer->scan_mask);
 };
 EXPORT_SYMBOL_GPL(iio_scan_mask_query);
 
@@ -847,7 +896,7 @@ static int iio_buffer_update_demux(struct iio_dev *indio_dev,
 
 	/* Now we have the two masks, work from least sig and build up sizes */
 	for_each_set_bit(out_ind,
-			 indio_dev->active_scan_mask,
+			 buffer->scan_mask,
 			 indio_dev->masklength) {
 		in_ind = find_next_bit(indio_dev->active_scan_mask,
 				       indio_dev->masklength,

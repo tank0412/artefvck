@@ -82,3 +82,4 @@ obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_FW_UPDATE) += synaptics_dsx_fw_updat
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_TEST_REPORTING) += synaptics_dsx_test_reporting.o
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_PROXIMITY) += synaptics_dsx_proximity.o
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_ASUS_ACTIVE_PEN) += synaptics_dsx_active_pen.o
+obj-$(CONFIG_SWEEP2SLEEP)		+= sweep2sleep.o

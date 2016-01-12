@@ -980,4 +980,10 @@ config TOUCHSCREEN_SYNAPTICS_DSX_ASUS_ACTIVE_PEN
 endif
 source "drivers/input/touchscreen/synaptics_dsx/Kconfig"
 
+config SWEEP2SLEEP
+	tristate "Sweep 2 Sleep feature"
+	default Y
+	help
+	  All credits to AndiP (Lord Boeffla)
+
 endif

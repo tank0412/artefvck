@@ -1146,12 +1146,11 @@ struct task_struct {
 				 * execve */
 	unsigned in_iowait:1;
 
-	/* task may not gain privileges */
-	unsigned no_new_privs:1;
-
 	/* Revert to default priority/policy when forking */
 	unsigned sched_reset_on_fork:1;
 	unsigned sched_contributes_to_load:1;
+
+	unsigned long atomic_flags; /* Flags needing atomic access. */
 
 	pid_t pid;
 	pid_t tgid;
@@ -1193,6 +1192,7 @@ struct task_struct {
 
 	cputime_t utime, stime, utimescaled, stimescaled;
 	cputime_t gtime;
+	unsigned long long cpu_power;
 #ifndef CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
 	struct cputime prev_cputime;
 #endif
@@ -1723,6 +1723,19 @@ static inline unsigned int memalloc_noio_save(void)
 static inline void memalloc_noio_restore(unsigned int flags)
 {
 	current->flags = (current->flags & ~PF_MEMALLOC_NOIO) | flags;
+}
+
+/* Per-process atomic flags. */
+#define PFA_NO_NEW_PRIVS 0x00000001	/* May not gain new privileges. */
+
+static inline bool task_no_new_privs(struct task_struct *p)
+{
+	return test_bit(PFA_NO_NEW_PRIVS, &p->atomic_flags);
+}
+
+static inline void task_set_no_new_privs(struct task_struct *p)
+{
+	set_bit(PFA_NO_NEW_PRIVS, &p->atomic_flags);
 }
 
 /*
@@ -2520,34 +2533,98 @@ static inline int tsk_is_polling(struct task_struct *p)
 {
 	return task_thread_info(p)->status & TS_POLLING;
 }
-static inline void current_set_polling(void)
+static inline void __current_set_polling(void)
 {
 	current_thread_info()->status |= TS_POLLING;
 }
 
-static inline void current_clr_polling(void)
+static inline bool __must_check current_set_polling_and_test(void)
+{
+	__current_set_polling();
+
+	/*
+	 * Polling state must be visible before we test NEED_RESCHED,
+	 * paired by resched_task()
+	 */
+	smp_mb();
+
+	return unlikely(tif_need_resched());
+}
+
+static inline void __current_clr_polling(void)
 {
 	current_thread_info()->status &= ~TS_POLLING;
-	smp_mb__after_clear_bit();
+}
+
+static inline bool __must_check current_clr_polling_and_test(void)
+{
+	__current_clr_polling();
+
+	/*
+	 * Polling state must be visible before we test NEED_RESCHED,
+	 * paired by resched_task()
+	 */
+	smp_mb();
+
+	return unlikely(tif_need_resched());
 }
 #elif defined(TIF_POLLING_NRFLAG)
 static inline int tsk_is_polling(struct task_struct *p)
 {
 	return test_tsk_thread_flag(p, TIF_POLLING_NRFLAG);
 }
-static inline void current_set_polling(void)
+
+static inline void __current_set_polling(void)
 {
 	set_thread_flag(TIF_POLLING_NRFLAG);
 }
 
-static inline void current_clr_polling(void)
+static inline bool __must_check current_set_polling_and_test(void)
+{
+	__current_set_polling();
+
+	/*
+	 * Polling state must be visible before we test NEED_RESCHED,
+	 * paired by resched_task()
+	 *
+	 * XXX: assumes set/clear bit are identical barrier wise.
+	 */
+	smp_mb__after_clear_bit();
+
+	return unlikely(tif_need_resched());
+}
+
+static inline void __current_clr_polling(void)
 {
 	clear_thread_flag(TIF_POLLING_NRFLAG);
 }
+
+static inline bool __must_check current_clr_polling_and_test(void)
+{
+	__current_clr_polling();
+
+	/*
+	 * Polling state must be visible before we test NEED_RESCHED,
+	 * paired by resched_task()
+	 */
+	smp_mb__after_clear_bit();
+
+	return unlikely(tif_need_resched());
+}
+
 #else
 static inline int tsk_is_polling(struct task_struct *p) { return 0; }
-static inline void current_set_polling(void) { }
-static inline void current_clr_polling(void) { }
+static inline void __current_set_polling(void) { }
+static inline void __current_clr_polling(void) { }
+
+static inline bool __must_check current_set_polling_and_test(void)
+{
+	return unlikely(tif_need_resched());
+}
+static inline bool __must_check current_clr_polling_and_test(void)
+{
+	return unlikely(tif_need_resched());
+}
 #endif
 
 /*

@@ -29,6 +29,8 @@
 #include <linux/slab.h>
 #include <linux/wakelock.h>
 #include <linux/intel_mid_pm.h>
+#include <linux/proc_fs.h>
+#include <linux/gpio.h>
 
 #include <trace/events/mmc.h>
 
@@ -63,7 +65,7 @@ static const unsigned freqs[] = { 400000, 300000, 200000, 100000 };
  * performance cost, and for other reasons may not always be desired.
  * So we allow it it to be disabled.
  */
-bool use_spi_crc = 1;
+bool use_spi_crc = 0;
 module_param(use_spi_crc, bool, 0);
 
 /*
@@ -82,6 +84,22 @@ module_param_named(removable, mmc_assume_removable, bool, 0644);
 MODULE_PARM_DESC(
 	removable,
 	"MMC/SD cards are removable and may be removed during suspend");
+
+//<ASUS_BSP+>
+extern int sd_power;
+
+static ssize_t sd_power_proc_read(struct file *file, char __user *buf, size_t count, loff_t *ppos);
+static ssize_t sd_power_proc_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos);
+
+static const struct file_operations sd_power_proc_fops = {
+	.owner = THIS_MODULE,
+	.read = sd_power_proc_read,
+	.write = sd_power_proc_write,
+};
+//<ASUS_BSP->
+
+extern int intel_scu_ipc_ioread8(u16 addr, u8 *data);
+extern int intel_scu_ipc_iowrite8(u16 addr, u8 data);
 
 /*
  * Internal function. Schedule delayed work in the MMC work queue.
@@ -387,10 +405,13 @@ EXPORT_SYMBOL(mmc_start_bkops);
  */
 static void mmc_wait_data_done(struct mmc_request *mrq)
 {
+	unsigned long flags;
 	struct mmc_context_info *context_info = &mrq->host->context_info;
 
-	context_info->is_done_rcv = true;
-	wake_up_interruptible(&context_info->wait);
+	spin_lock_irqsave(&context_info->lock, flags);
+	mrq->host->context_info.is_done_rcv = true;
+	wake_up_interruptible(&mrq->host->context_info.wait);
+	spin_unlock_irqrestore(&context_info->lock, flags);
 }
 
 static void mmc_wait_done(struct mmc_request *mrq)
@@ -463,6 +484,7 @@ static int mmc_wait_for_data_req_done(struct mmc_host *host,
 	struct mmc_command *cmd;
 	struct mmc_context_info *context_info = &host->context_info;
 	int err;
+	bool is_done_rcv = false;
 	unsigned long flags;
 
 	while (1) {
@@ -471,8 +493,9 @@ static int mmc_wait_for_data_req_done(struct mmc_host *host,
 				 context_info->is_new_req));
 		spin_lock_irqsave(&context_info->lock, flags);
 		context_info->is_waiting_last_req = false;
+		is_done_rcv = context_info->is_done_rcv;
 		spin_unlock_irqrestore(&context_info->lock, flags);
-		if (context_info->is_done_rcv) {
+		if (is_done_rcv) {
 			context_info->is_done_rcv = false;
 			context_info->is_new_req = false;
 			cmd = mrq->cmd;
@@ -1801,9 +1824,16 @@ void mmc_detect_change(struct mmc_host *host, unsigned long delay)
 	spin_unlock_irqrestore(&host->lock, flags);
 #endif
 	host->detect_change = 1;
-
+	if ((strcmp(mmc_hostname(host), "mmc1") == 0))
+		pr_info("%s: mmc_detect_change, SD card %s\n",
+			mmc_hostname(host), gpio_get_value(69) ? "removed" : "inserted");
+			// gpio-69 : SD_CD
+	//<ASUS_BSP+>
+	//if (sd_power == 1) {
 	wake_lock(&host->detect_wake_lock);
 	mmc_schedule_delayed_work(&host->detect, delay);
+	//}
+	//<ASUS_BSP->
 }
 
 EXPORT_SYMBOL(mmc_detect_change);
@@ -2941,6 +2971,17 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 	unsigned long flags;
 	int err = 0;
 
+	//<ASUS_BSP+>
+	if ((strcmp(mmc_hostname(host), "mmc1") == 0) && (sd_power == 0)) {
+		//mmc_claim_host(host);
+		mmc_detach_bus(host);
+		mmc_power_off(host);
+		//mmc_release_host(host);
+		host->pm_flags = 0;
+		return 0;
+	}
+	//<ASUS_BSP->
+
 	switch (mode) {
 	case PM_HIBERNATION_PREPARE:
 	case PM_SUSPEND_PREPARE:
@@ -3036,9 +3077,48 @@ void mmc_set_embedded_sdio_data(struct mmc_host *host,
 EXPORT_SYMBOL(mmc_set_embedded_sdio_data);
 #endif
 
+//<ASUS_BSP+>
+static ssize_t sd_power_proc_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+{
+	return 0;
+}
+static ssize_t sd_power_proc_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
+{
+	char str[128];
+	int value;
+
+	if (count > PAGE_SIZE) //procfs write and read has PAGE_SIZE limit
+		count = 128;
+
+        if (copy_from_user(str, buf, count))
+	{
+		printk("copy_from_user failed!\n");
+		return -EFAULT;
+        }
+
+	if (count > 1)
+	{
+		str[count-1] = '\0';
+	}
+
+	if ((int)(str[0]) == (0+48)) {		//Disable
+		printk("mmc1: Disable SD card power vccsdio\n");
+
+		sd_power = 0;
+		intel_scu_ipc_ioread8(0xd5, &value);
+		value &= 0xF8;
+		value |= 0x04;                          //VCCSDIO off
+		intel_scu_ipc_iowrite8(0xd5, value);
+	}
+
+	return count;
+}
+//<ASUS_BSP->
+
 static int __init mmc_init(void)
 {
 	int ret;
+	struct proc_dir_entry *sd_power_proc; //<ASUS_BSP+>
 
 	workqueue = alloc_ordered_workqueue("kmmcd", 0);
 	if (!workqueue)
@@ -3056,6 +3136,15 @@ static int __init mmc_init(void)
 	if (ret)
 		goto unregister_host_class;
 
+	//<ASUS_BSP+>
+	sd_power_proc = proc_create("asus_sd_power", 0664, NULL, &sd_power_proc_fops);
+
+	if (!sd_power_proc) {
+		pr_err("%s: Failed to create proc sdpower node\n", __func__);
+		goto unregister_host_class;
+	}
+	//<ASUS_BSP->
+
 	return 0;
 
 unregister_host_class:
@@ -3070,6 +3159,9 @@ destroy_workqueue:
 
 static void __exit mmc_exit(void)
 {
+	//<ASUS_BSP+>
+	proc_remove("asus_sd_power");
+	//<ASUS_BSP->
 	sdio_unregister_bus();
 	mmc_unregister_host_class();
 	mmc_unregister_bus();

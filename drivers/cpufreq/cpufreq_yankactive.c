@@ -177,7 +177,7 @@ static struct early_suspend hotplug_auxcpus_desc __refdata = {
 	.suspend = early_suspend_offline_cpus,
 	.resume = late_resume_online_cpus,
 };
-/*
+
 static inline cputime64_t get_cpu_idle_time_jiffy(unsigned int cpu,
 						  cputime64_t *wall)
 {
@@ -215,7 +215,7 @@ static inline cputime64_t get_cpu_idle_time(
 
 	return idle_time;
 }
-*/
+
 static void cpufreq_yankactive_timer_resched(
 	struct cpufreq_yankactive_cpuinfo *pcpu)
 {
